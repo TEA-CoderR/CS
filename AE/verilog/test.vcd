@@ -1,0 +1,35 @@
+$date
+	Thu Sep 26 22:24:02 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module test $end
+$var wire 1 ! c $end
+$var reg 1 " a $end
+$var reg 1 # b $end
+$scope module myRete $end
+$var wire 1 " x $end
+$var wire 1 # y $end
+$var wire 1 ! z $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+0#
+0"
+0!
+$end
+#2
+1!
+1#
+#5
+1"
+#7
+0!
+0#
+0"

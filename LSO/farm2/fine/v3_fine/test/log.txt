@@ -1,0 +1,63 @@
+0> collector start run!
+1> collector is listening
+2> ---accepted una connessione fd: 7---
+3> ---accepted una connessione fd: 8---
+4> ---accepted una connessione fd: 9---
+5> ---accepted una connessione fd: 10---
+6> ---accepted una connessione fd: 11---
+7> ---accepted una connessione fd: 12---
+8> fd: 7 arrivato un risultato, add un task nel pool
+9> riregistra fd: 7
+10> fd: 8 arrivato un risultato, add un task nel pool
+11> riregistra fd: 8
+12> fd: 9 arrivato un risultato, add un task nel pool
+13> riregistra fd: 9
+14> fd: 10 arrivato un risultato, add un task nel pool
+15> riregistra fd: 10
+16> fd: 11 arrivato un risultato, add un task nel pool
+17> riregistra fd: 11
+18> fd: 7 arrivato un risultato, add un task nel pool
+19> riregistra fd: 7
+20> fd: 12 arrivato un risultato, add un task nel pool
+21> riregistra fd: 12
+22> fd: 9 arrivato un risultato, add un task nel pool
+23> riregistra fd: 9
+24> fd: 10 arrivato un risultato, add un task nel pool
+25> riregistra fd: 10
+26> fd: 8 arrivato un risultato, add un task nel pool
+27> fd: 11 arrivato un risultato, add un task nel pool
+28> riregistra fd: 8
+29> riregistra fd: 11
+30> fd: 12 arrivato un risultato, add un task nel pool
+31> riregistra fd: 12
+32> fd: 7 arrivato un risultato, add un task nel pool
+33> riregistra fd: 7
+34> fd: 8 arrivato un risultato, add un task nel pool
+35> riregistra fd: 8
+36> fd: 9 arrivato un risultato, add un task nel pool
+37> riregistra fd: 9
+38> fd: 10 arrivato un risultato, add un task nel pool
+39> riregistra fd: 10
+40> fd: 11 arrivato un risultato, add un task nel pool
+41> riregistra fd: 11
+42> fd: 12 arrivato un risultato, add un task nel pool
+43> riregistra fd: 12
+44> fd: 8 arrivato un risultato, add un task nel pool
+45> riregistra fd: 8
+46> fd: 9 arrivato un risultato, add un task nel pool
+47> riregistra fd: 9
+48> fd: 10 arrivato un risultato, add un task nel pool
+49> riregistra fd: 10
+50> fd: 7 arrivato un risultato, add un task nel pool
+51> fd: 8 arrivato un risultato, add un task nel pool
+52> ---interruzione di una connessione---
+53> fd: 9 arrivato un risultato, add un task nel pool
+54> fd: 10 arrivato un risultato, add un task nel pool
+55> fd: 11 arrivato un risultato, add un task nel pool
+56> fd: 12 arrivato un risultato, add un task nel pool
+57> ---interruzione di una connessione---
+58> ---interruzione di una connessione---
+59> ---interruzione di una connessione---
+60> ---interruzione di una connessione---
+61> ---interruzione di una connessione---
+fine> tutte le connessioni sono interrotte, collector end!

@@ -1,0 +1,6 @@
+gcc -o farm2 farm2_main.o master.o collector.o utils.o threadpool.o container.o addresult.o countfile.o
+
+
+
+
+gcc -c master.c 
