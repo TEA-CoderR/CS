@@ -42,27 +42,20 @@ module tlb (
     input rst,
 
     // Processor Interface
-    /*---------------------Accept request-----------------------------*/
-    input req_valid_i,              // Request valid
-    output reg req_ready_o,         // Request ready
-    input [31:0] vaddr_i,           // Virtual address input
-    input access_type_i             // Access_type: 0 -> read, 1 -> write
-    /*----------------------Send response-----------------------------*/
-    output reg resp_valid_o,        // Response valid
-    input resp_ready_i,             // Response ready
-    output reg [31:0] paddr_o,      // Physical address output
-    output reg hit_o,               // TLB hit
-    output reg fault_o,             // Access fault
+    input [31:0] vaddr_i,       // Virtual address input
+    input access_type_i         // Access_type: 0 -> read, 1 -> write
+    input req_valid_i,          // Request valid
+    output reg [31:0] paddr_o,  // Physical address output
+    output reg resp_valid_o,    // Response valid
+    output reg hit_o,           // TLB hit
+    output reg fault_o,         // Access fault
 
     // PTW Interface
-    /*----------------------Send request------------------------------*/
-    output reg ptw_req_valid_o,     // PTW request valid
-    input ptw_req_ready_i,          // PTW request ready
-    output reg [31:0] ptw_vaddr_o,  // PTW virtual address
-    /*---------------------Accept response----------------------------*/
-    input ptw_resp_valid_i,         // PTW response valid
-    output reg ptw_resp_ready_o,    // PTW response ready
-    input [31:0] ptw_pte_i,         // Page table entry
+    output reg ptw_req_o,       // PTW request
+    output reg [31:0] ptw_vaddr_o,// PTW virtual address
+    input ptw_resp_valid_i,     // PTW response valid
+    input [31:0] ptw_pte_i,     // Page table entry
+    //input ptw_fault_i           // PTW fault
 );
 
 // TLB parameters
@@ -87,10 +80,8 @@ tlb_entry_t tlb_entries [0:NUM_SETS-1][0:NUM_WAYS-1];   // Storage array [set][w
 typedef enum logic [1:0]{
     ACCEPT_REQ,
     LOOKUP,
-    PTW_REQ,
     PTW_PENDING,
-    UPDATE,
-    RESPOND
+    UPDATE
 } state_t;
 
 // Internal registers
@@ -170,26 +161,17 @@ assign perm_fault =
 // ===================================================================
 always @(posedge clk) begin
     if (rst) begin
-        state <= ACCEPT_REQ;
-        req_ready_o <= 1;
+        next_state <= ACCEPT_REQ;
         resp_valid_o <= 0;
-        paddr_o <= 0;
+        ptw_req_o <= 0;
         hit_o <= 0;
         fault_o <= 0;
-        ptw_req_valid_o <= 0;
-        ptw_vaddr_o <= 0;
-        ptw_resp_ready_o <= 0;
 
         // Reset Internal registers
         vaddr_reg <= 0;
         access_type_reg <= 0;
         pte_reg <= 0;
-
-        // Reset LRU information registers
-        replace_way <= 0;
-        min_lru_value <= 0;
-        max_lru_value <= 0;
-
+        
         // Reset TLB entries
         integer s, w;
         for (s = 0; s < NUM_SETS; s = s + 1) begin
@@ -203,15 +185,14 @@ always @(posedge clk) begin
         end
     end else begin
         state <= next_state;
-
+        
         case (state)
             ACCEPT_REQ: begin
+                resp_valid_o <= 0;
                 if (req_valid_i) begin
                     vaddr_reg <= vaddr_i;
                     access_type_reg <= access_type_i;
-                    // Received request, close request channel                   
-                    req_ready_o <= 0;
-
+                    
                     next_state <= LOOKUP;
                 end
             end
@@ -223,8 +204,7 @@ always @(posedge clk) begin
                     hit_o <= 1;
                     fault_o <= 0;
                     resp_valid_o <= 1;
-
-                    next_state <= RESPOND;
+                    next_state <= ACCEPT_REQ;
                     
                     // Update LRU counter: increment for hit way
                     tlb_entries[set_index][hit_way].lru_count <= 
@@ -232,39 +212,41 @@ always @(posedge clk) begin
                 end
                 else if (hit && perm_fault) begin
                     // Permission fault
-                    paddr_o <= 0;
                     hit_o <= 1;
                     fault_o <= 1;
                     resp_valid_o <= 1;
 
-                    next_state <= RESPOND;
+                    next_state <= ACCEPT_REQ;
                 end
                 else begin
-                    // TLB miss, send ptw request
+                    // TLB miss, initiate page table walk
+                    ptw_req_o <= 1;
                     ptw_vaddr_o <= vaddr_reg;
-                    ptw_req_valid_o <= 1;
-
-                    next_state <= PTW_REQ;
-                end
-            end
-
-            PTW_REQ: begin
-                if (ptw_req_ready_i) begin
-                    // Request completed
-                    ptw_req_valid_o <= 0;
-                    // Ready to receive ptw response in PTW_PENDING state
-                    ptw_resp_ready_o <= 1;
 
                     next_state <= PTW_PENDING;
-                end               
+                end
             end
             
-            PTW_PENDING: begin               
+            PTW_PENDING: begin
+                ptw_req_o <= 0; // PTW request is one-cycle pulse
+                
                 if (ptw_resp_valid_i) begin
+                    // if (ptw_fault_i) begin
+                    //     // PTW fault (e.g., page fault)
+                    //     hit_o <= 0;
+                    //     fault_o <= 1;
+                    //     resp_valid_o <= 1;
+
+                    //     next_state <= ACCEPT_REQ;
+                    // end else begin
+                    //     // Success, store PTE
+                    //     pte_reg <= ptw_pte_i;
+
+                    //     next_state <= UPDATE;
+                    // end
+
                     // Success, store PTE
                     pte_reg <= ptw_pte_i;
-                    // Received ptw response, close ptw response channel 
-                    ptw_resp_ready_o <= 0;
 
                     next_state <= UPDATE;
                 end
@@ -272,11 +254,13 @@ always @(posedge clk) begin
             
             UPDATE: begin
                 // Permission check
-                // If ptw fault, pte_reg is "32'h00000000", so pte_reg[0] = pte_reg[1] = 0 => fault = 1
                 if ((access_type_reg == 1'b0 && !pte_reg[0]) ||
                  (access_type_reg == 1'b1 && !pte_reg[1])) begin
-                    paddr_o <= 0;
+                    hit_o <= 0;
                     fault_o <= 1;
+                    resp_valid_o <= 1;
+
+                    next_state <= ACCEPT_REQ;
                 end else begin
                     // Intra-set LRU calculation: find way with minimum LRU value
                     replace_way = 0;
@@ -303,24 +287,13 @@ always @(posedge clk) begin
                     
                     // Output physical address
                     paddr_o <= {pte_reg[31:12], page_offset};
+                    hit_o <= 0;    // Indicate it was a TLB miss but handled
                     fault_o <= 0;
-                end
-                // Indicate it was a TLB miss but handled
-                hit_o <= 0; 
-                resp_valid_o <= 1;
-
-                next_state <= RESPOND;
-            end
-
-            RESPOND: begin
-                if (resp_ready_i) begin
-                    // Response completed
-                    resp_valid_o <= 0;
-                    // Ready to receive processor request in ACCEPT_REQ state
-                    req_ready_o <= 1;
+                    resp_valid_o <= 1;
 
                     next_state <= ACCEPT_REQ;
-                end                
+                end
+
             end
         endcase
     end
