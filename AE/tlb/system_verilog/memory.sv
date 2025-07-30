@@ -34,6 +34,18 @@ reg [31:0] mem_addr_reg;
 // Convert byte address to word index
 wire [MEM_ADDR_WIDTH-1:0] word_index = mem_addr_reg[MEM_ADDR_WIDTH+1:2];
 
+// Add initialization for page table entries
+initial begin
+    // Initialize memory with zeros
+    integer i;
+    for (i = 0; i < MEM_SIZE; i = i + 1) begin
+        mem[i] = 32'd0;
+    end
+    // Initialize root page table at 0x1000
+    mem[100] = 32'h20000001; // PPN=0x2000, V=1
+    mem[200] = 32'h30000001; // PPN=0x3000, V=1
+end
+
 // ===================================================================
 // Memory Access State Machine
 // ===================================================================
@@ -84,18 +96,6 @@ always @(posedge clk) begin
             end
         endcase
     end
-end
-
-// Add initialization for page table entries
-initial begin
-    // Initialize memory with zeros
-    integer i;
-    for (i = 0; i < MEM_SIZE; i = i + 1) begin
-        mem[i] <= 32'd0;
-    end
-    // Initialize root page table at 0x1000
-    mem[100] = 32'h2000_0001; // PPN=0x2000, V=1
-    mem[200] = 32'h3000_0001; // PPN=0x3000, V=1
 end
 
 endmodule

@@ -62,7 +62,7 @@ module tlb (
     /*---------------------Accept response----------------------------*/
     input ptw_resp_valid_i,         // PTW response valid
     output reg ptw_resp_ready_o,    // PTW response ready
-    input [31:0] ptw_pte_i         // Page table entry
+    input [31:0] ptw_pte_i          // Page table entry
 );
 
 // TLB parameters
@@ -96,7 +96,7 @@ typedef enum logic [2:0]{
 // Internal registers
 state_t state, next_state;
 reg [31:0] vaddr_reg;
-reg [2:0] access_type_reg;
+reg access_type_reg;
 reg [31:0] pte_reg;             // Store PTE from PTW
 
 // Lookup logic signals
@@ -107,15 +107,32 @@ wire [11:0] page_offset;                // Page offset
 // Intra-set match signals
 wire [NUM_WAYS-1:0] match;
 wire hit;
-wire hit_way;
+wire [1:0] hit_way;
 wire [19:0] hit_ppn;
-wire [2:0] hit_perms;
+wire [1:0] hit_perms;
 wire perm_fault;
 
 // LRU information within set
-reg [1:0] replace_way;       // Replacement way
-reg [LRU_BITS-1:0] min_lru_value;
-reg [LRU_BITS-1:0] max_lru_value;
+// reg [1:0] replace_way;       // Replacement way
+// reg [LRU_BITS-1:0] min_lru_value;
+// reg [LRU_BITS-1:0] max_lru_value;
+
+// Add initialization for tlb entries
+initial begin
+    tlb_entry_t entry;
+    // Reset TLB entries
+    integer s, w;
+    for (s = 0; s < NUM_SETS; s = s + 1) begin
+        for (w = 0; w < NUM_WAYS; w = w + 1) begin
+            entry = tlb_entries[s][w];
+            entry.valid = 0;
+            entry.vpn = 0;
+            entry.ppn = 0;
+            entry.perms = 0;
+            entry.lru_count = 0;
+        end
+    end
+end
 
 // ===================================================================
 // TLB Lookup Logic (Combinational Logic)
@@ -130,11 +147,12 @@ assign set_index = vaddr_reg[SET_INDEX_BITS-1+12:12];
 // Page offset extraction
 assign page_offset = vaddr_reg[11:0];
 
+
 // Generate match signals within the set
 generate
     for (genvar i = 0; i < NUM_WAYS; i = i + 1) begin : match_gen
-        assign match[i] = tlb_entries[set_index][i].valid && 
-                         (tlb_entries[set_index][i].vpn == vpn);
+        tlb_entry_t entry = tlb_entries[set_index][i];
+        assign match[i] = entry.valid && (entry.vpn == vpn);
     end
 endgenerate
 
@@ -147,16 +165,20 @@ assign hit_way = match[0] ? 2'd0 :
                  match[2] ? 2'd2 :
                  match[3] ? 2'd3 : 2'd0;
 
+tlb_entry_t entry0 = tlb_entries[set_index][0];
+tlb_entry_t entry1 = tlb_entries[set_index][1];
+tlb_entry_t entry2 = tlb_entries[set_index][2];
+tlb_entry_t entry3 = tlb_entries[set_index][3];
 // Hit PPN and permissions
-assign hit_ppn = match[0] ? tlb_entries[set_index][0].ppn :
-                 match[1] ? tlb_entries[set_index][1].ppn :
-                 match[2] ? tlb_entries[set_index][2].ppn :
-                 match[3] ? tlb_entries[set_index][3].ppn : 20'd0;
+assign hit_ppn = match[0] ? entry0.ppn :
+                 match[1] ? entry1.ppn :
+                 match[2] ? entry2.ppn :
+                 match[3] ? entry3.ppn : 20'd0;
                  
-assign hit_perms = match[0] ? tlb_entries[set_index][0].perms :
-                   match[1] ? tlb_entries[set_index][1].perms :
-                   match[2] ? tlb_entries[set_index][2].perms :
-                   match[3] ? tlb_entries[set_index][3].perms : 2'd0;
+assign hit_perms = match[0] ? entry0.perms :
+                   match[1] ? entry1.perms :
+                   match[2] ? entry2.perms :
+                   match[3] ? entry3.perms : 2'd0;
 
 // Permission check
 assign perm_fault = 
@@ -168,8 +190,9 @@ assign perm_fault =
 // ===================================================================
 // Main State Machine
 // ===================================================================
+tlb_entry_t entry;
 always @(posedge clk) begin
-    integer i;
+    integer i, replace_way, min_lru_value, max_lru_value;
     if (rst) begin
         state <= ACCEPT_REQ;
         req_ready_o <= 1;
@@ -187,9 +210,9 @@ always @(posedge clk) begin
         pte_reg <= 0;
 
         // Reset LRU information registers
-        replace_way <= 0;
-        min_lru_value <= 0;
-        max_lru_value <= 0;
+        // replace_way <= 0;
+        // min_lru_value <= 0;
+        // max_lru_value <= 0;
 
     end else begin
         state <= next_state;
@@ -217,8 +240,9 @@ always @(posedge clk) begin
                     next_state <= RESPOND;
                     
                     // Update LRU counter: increment for hit way
-                    tlb_entries[set_index][hit_way].lru_count <= 
-                        tlb_entries[set_index][hit_way].lru_count + 1;
+                    //tlb_entries[set_index][hit_way].lru_count <= tlb_entries[set_index][hit_way].lru_count + 1;
+                    entry = tlb_entries[set_index][hit_way];
+                    entry.lru_count <= entry.lru_count + 1;
                 end
                 else if (hit && perm_fault) begin
                     // Permission fault
@@ -270,25 +294,28 @@ always @(posedge clk) begin
                 end else begin
                     // Intra-set LRU calculation: find way with minimum LRU value
                     replace_way = 0;
-                    min_lru_value = tlb_entries[set_index][0].lru_count;
+                    entry = tlb_entries[set_index][0];
+                    min_lru_value = entry.lru_count;
                     max_lru_value = min_lru_value;
                     
                     for (i = 1; i < NUM_WAYS; i = i + 1) begin
-                        if (tlb_entries[set_index][i].lru_count < min_lru_value) begin
-                            min_lru_value = tlb_entries[set_index][i].lru_count;
-                            replace_way = i;
+                        entry = tlb_entries[set_index][i];
+                        if (entry.lru_count < min_lru_value) begin
+                            min_lru_value <= entry.lru_count;
+                            replace_way <= i;
                         end
-                        if (tlb_entries[set_index][i].lru_count > max_lru_value) begin
-                            max_lru_value = tlb_entries[set_index][i].lru_count;
+                        if (entry.lru_count > max_lru_value) begin
+                            max_lru_value <= entry.lru_count;
                         end
                     end
 
                     // Update TLB entry (replace way with lowest LRU)
-                    tlb_entries[set_index][replace_way].valid <= 1'b1;
-                    tlb_entries[set_index][replace_way].vpn <= vpn;
-                    tlb_entries[set_index][replace_way].ppn <= pte_reg[31:12];
-                    tlb_entries[set_index][replace_way].perms <= pte_reg[1:0];
-                    tlb_entries[set_index][replace_way].lru_count <= max_lru_value; // New entry LRU = max_lru_value
+                    entry = tlb_entries[set_index][replace_way];
+                    entry.valid <= 1'b1;
+                    entry.vpn <= vpn;
+                    entry.ppn <= pte_reg[31:12];
+                    entry.perms <= pte_reg[1:0];
+                    entry.lru_count <= max_lru_value; // New entry LRU = max_lru_value
                     
                     // Output physical address
                     paddr_o <= {pte_reg[31:12], page_offset};
@@ -312,20 +339,6 @@ always @(posedge clk) begin
                 end                
             end
         endcase
-    end
-end
-
-initial begin
-    // Reset TLB entries
-    integer s, w;
-    for (s = 0; s < NUM_SETS; s = s + 1) begin
-        for (w = 0; w < NUM_WAYS; w = w + 1) begin
-            tlb_entries[s][w].valid <= 0;
-            tlb_entries[s][w].vpn <= 0;
-            tlb_entries[s][w].ppn <= 0;
-            tlb_entries[s][w].perms <= 0;
-            tlb_entries[s][w].lru_count <= 0;
-        end
     end
 end
 

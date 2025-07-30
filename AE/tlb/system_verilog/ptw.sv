@@ -24,7 +24,7 @@ module ptw (
 );
 
 // Page table parameters
-parameter SATP_PPN = 32'h1000; // Page table base address
+parameter SATP_PPN = 20'h0010; // Page table base address
 
 // State definitions
 typedef enum logic [2:0] {
@@ -102,7 +102,7 @@ always @(posedge clk) begin
                         next_state <= RESPOND;
                     end else begin
                         // Send Level2 memory request
-                        mem_addr_o <= {mem_data_i[31:10], vpn0, 2'b00}; // Level2 PTE address
+                        mem_addr_o <= {mem_data_i[31:12], vpn0, 2'b00}; // Level2 PTE address
                         mem_req_valid_o <= 1;
 
                         next_state <= READ_LEVEL2;
