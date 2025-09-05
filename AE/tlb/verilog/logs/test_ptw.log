@@ -1,0 +1,26 @@
+========================================
+PTW Unit Test Starting
+========================================
+
+=== Test 1: Reset Functionality ===
+PASS: PTW ready after reset
+
+=== Test 2: Two-Level Page Walk ===
+[MEM] Request: addr=0x00400000
+[MEM] Request: addr=0x00400000
+DATA mem_addr_o: data=0x00000000
+DATA sim_memory: data=0x00000000
+DATA mem_data_i: data=0x00000000
+[MEM] Response: data=0x00000000
+Wait for response: addr=0x00000000
+ERROR [             Two-level page walk]: PTE mismatch
+  Expected: 0x1000000f
+  Got:      0x00000000
+  VAddr was: 0x00000000
+
+========================================
+PTW Test Summary:
+  Tests Passed:           1
+  Tests Failed:           1
+  SOME TESTS FAILED!
+========================================

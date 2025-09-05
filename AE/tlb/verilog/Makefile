@@ -6,12 +6,14 @@ SIM ?= iverilog
 
 # Source files
 PARAM_FILE = tlb_params.vh
-SRC_FILES = tlb_storage.v tlb_lookup.v tlb_lru.v tlb_controller.v tlb.v
+SRC_FILES = tlb_storage.v tlb_lookup.v tlb_lru.v tlb_controller.v tlb.v ptw.v memory.v
 
 # Testbench files
 TB_STORAGE = test_tlb_storage.v
 TB_LOOKUP = test_tlb_lookup.v
 TB_LRU = test_tlb_lru.v
+TB_PTW = test_ptw.v
+TB_MEMORY = test_memory.v
 TB_INTEGRATION = test_tlb_integration.v
 
 # Output directories
@@ -52,6 +54,16 @@ test_lru: $(BUILD_DIR)/test_lru$(EXT)
 	$(RUN) $(BUILD_DIR)/test_lru$(EXT) | tee $(LOG_DIR)/test_lru.log
 	@echo ""
 
+test_ptw: $(BUILD_DIR)/test_ptw$(EXT)
+	@echo "=== Running PTW Test ==="
+	$(RUN) $(BUILD_DIR)/test_ptw$(EXT) | tee $(LOG_DIR)/test_ptw.log
+	@echo ""
+
+test_memory: $(BUILD_DIR)/test_memory$(EXT)
+	@echo "=== Running MEMORY Test ==="
+	$(RUN) $(BUILD_DIR)/test_memory$(EXT) | tee $(LOG_DIR)/test_memory.log
+	@echo ""
+
 test_integration: $(BUILD_DIR)/test_integration$(EXT)
 	@echo "=== Running TLB Integration Test ==="
 	$(RUN) $(BUILD_DIR)/test_integration$(EXT) | tee $(LOG_DIR)/test_integration.log
@@ -59,7 +71,7 @@ test_integration: $(BUILD_DIR)/test_integration$(EXT)
 	@echo ""
 
 # Run all tests
-test_all: test_storage test_lookup test_lru test_integration
+test_all: test_storage test_lookup test_lru test_ptw test_memory test_integration
 	@echo "========================================="
 	@echo "All tests completed. Check logs directory for details."
 	@echo "========================================="
@@ -67,7 +79,7 @@ test_all: test_storage test_lookup test_lru test_integration
 	@echo "========================================="
 
 # Unit test targets
-unit_tests: test_storage test_lookup test_lru
+unit_tests: test_storage test_lookup test_lru test_ptw test_memory
 	@echo "=== Unit tests completed ==="
 
 # Compilation rules
@@ -79,6 +91,12 @@ $(BUILD_DIR)/test_lookup$(EXT): $(TB_LOOKUP) tlb_lookup.v $(PARAM_FILE)
 
 $(BUILD_DIR)/test_lru$(EXT): $(TB_LRU) tlb_lru.v $(PARAM_FILE)
 	$(COMPILE) -o $@ $(TB_LRU) tlb_lru.v
+
+$(BUILD_DIR)/test_ptw$(EXT): $(TB_PTW) ptw.v $(PARAM_FILE)
+	$(COMPILE) -o $@ $(TB_PTW) ptw.v
+
+$(BUILD_DIR)/test_memory$(EXT): $(TB_MEMORY) memory.v $(PARAM_FILE)
+	$(COMPILE) -o $@ $(TB_MEMORY) memory.v
 
 $(BUILD_DIR)/test_integration$(EXT): $(TB_INTEGRATION) $(SRC_FILES) $(PARAM_FILE)
 	$(COMPILE) -o $@ $(TB_INTEGRATION) $(SRC_FILES)
@@ -112,6 +130,8 @@ help:
 	@echo "  test_storage   - Run storage module test"
 	@echo "  test_lookup    - Run lookup module test"
 	@echo "  test_lru       - Run LRU module test"
+	@echo "  test_ptw       - Run PTW module test"
+	@echo "  test_memory    - Run MEMORY module test"
 	@echo "  test_integration - Run integration test"
 	@echo "  wave           - View waveforms (requires gtkwave)"
 	@echo "  coverage       - Generate coverage report (VCS only)"
@@ -127,4 +147,4 @@ help:
 	@echo "  make test_integration SIM=vcs"
 	@echo "  make clean"
 
-.PHONY: all test_all unit_tests test_storage test_lookup test_lru test_integration wave coverage clean help
+.PHONY: all test_all unit_tests test_storage test_lookup test_lru test_ptw test_memory test_integration wave coverage clean help
