@@ -1,4 +1,44 @@
-// test_memory_fixed.v
+// // 优化后的memory_read任务 - 正确的握手协议
+// task memory_read(
+//     input [31:0] addr,
+//     output [31:0] data_result
+// );
+// begin
+//     // 步骤1: 等待memory准备接受请求
+//     @(posedge clk);
+//     while (!mem_req_ready_o) @(posedge clk);
+    
+//     // 步骤2: 发送请求
+//     mem_req_valid_i = 1'b1;
+//     mem_addr_i = addr;
+//     $display("  [READ] Sending request to addr=0x%08h", addr);
+    
+//     // 步骤3: 等待请求被接受
+//     do @(posedge clk); while (!mem_req_ready_o || !mem_req_valid_i);
+    
+//     // 步骤4: 清除请求信号
+//     mem_req_valid_i = 1'b0;
+    
+//     // 步骤5: 准备接收响应
+//     mem_resp_ready_i = 1'b1;
+    
+//     // 步骤6: 等待响应
+//     while (!mem_resp_valid_o) @(posedge clk);
+    
+//     // 步骤7: 获取数据
+//     data_result = mem_data_o;
+//     $display("  [READ] Received data=0x%08h", data_result);
+    
+//     // 步骤8: 等待一个时钟周期确保握手完成
+//     @(posedge clk);
+    
+//     // 步骤9: 清除响应准备信号
+//     mem_resp_ready_i = 1'b0;
+//     @(posedge clk);
+// end
+// endtask
+
+// test_memory.v
 // Memory 模块单元测试 - 修复版本，确保所有地址都正确
 
 //`timescale 1ns/1ps
@@ -54,23 +94,53 @@ begin
 end
 endtask
 
+// task memory_read(
+//     input [31:0] addr,
+//     output [31:0] data_result
+// );
+// begin
+//     // Send memory request
+//     //@(posedge clk);
+//     wait(mem_req_ready_o);
+//     mem_req_valid_i = 1'b1;
+//     mem_addr_i = addr;
+//     @(posedge clk);
+//     @(posedge clk);
+//     mem_req_valid_i = 1'b0;
+    
+//     // Wait for response
+//     wait(mem_resp_valid_o);
+//     data_result = mem_data_o;
+//     mem_resp_ready_i = 1'b1;
+//     @(posedge clk);
+//     @(posedge clk);
+//     mem_resp_ready_i = 1'b0;
+//     @(posedge clk);
+// end
+// endtask
+
 task memory_read(
-    input [31:0] addr,
+    input  [31:0] addr,
     output [31:0] data_result
 );
 begin
-    // Send memory request
-    //@(posedge clk);
-    wait(mem_req_ready_o);
+    // 1. 等待 memory 接口准备好
+    while (mem_req_ready_o !== 1'b1) begin
+        @(mem_req_ready_o);  // 等待信号变化，再检查条件
+    end
+
+    // 2. 发起请求
     mem_req_valid_i = 1'b1;
-    mem_addr_i = addr;
+    mem_addr_i      = addr;
     @(posedge clk);
     @(posedge clk);
     mem_req_valid_i = 1'b0;
     
-    // Wait for response
-    wait(mem_resp_valid_o);
-    data_result = mem_data_o;
+    // 3. 等待响应
+    while (mem_resp_valid_o !== 1'b1) begin
+        @(mem_resp_valid_o); // 等待信号变化，再检查条件
+    end
+    data_result      = mem_data_o;
     mem_resp_ready_i = 1'b1;
     @(posedge clk);
     @(posedge clk);
@@ -78,6 +148,7 @@ begin
     @(posedge clk);
 end
 endtask
+
 
 // task memory_read(
 //     input [31:0] addr,
@@ -146,6 +217,8 @@ reg [31:0] rapid_expected [0:4];
 reg [31:0] test_addresses [0:9];
 reg [31:0] expected_values [0:9];
 initial begin
+    $dumpfile("test_memory.vcd");
+    $dumpvars(0, test_memory);
     // Initialize
     clk = 1'b0;
     test_passed = 0;
@@ -338,356 +411,15 @@ initial begin
     $finish;
 end
 
+// 状态监控
+always @(posedge clk) begin
+    $display("Time: %0t, State: %s, req_valid=%b, req_ready=%b, resp_valid=%b, resp_ready=%b", 
+             $time,
+             (dut.state == 2'b00) ? "IDLE" :
+             (dut.state == 2'b01) ? "READ_ACCESS" :
+             (dut.state == 2'b10) ? "RESPOND" : "UNKNOWN",
+             mem_req_valid_i, mem_req_ready_o, mem_resp_valid_o, mem_resp_ready_i);
+end
+
 endmodule
 
-
-
-
-
-
-// // test_memory.v
-// // Memory 模块单元测试
-
-// //`timescale 1ns/1ps
-
-// module test_memory;
-
-// // Clock and reset
-// reg clk;
-// reg rst;
-
-// // Memory Interface
-// reg mem_req_valid_i;
-// wire mem_req_ready_o;
-// reg [31:0] mem_addr_i;
-
-// wire mem_resp_valid_o;
-// reg mem_resp_ready_i;
-// wire [31:0] mem_data_o;
-
-// // Test variables
-// integer test_passed;
-// integer test_failed;
-// reg [31:0] test_addr;
-// reg [31:0] expected_data;
-// reg [31:0] received_data;
-
-// // DUT instantiation
-// memory dut (
-//     .clk(clk),
-//     .rst(rst),
-//     .mem_req_valid_i(mem_req_valid_i),
-//     .mem_req_ready_o(mem_req_ready_o),
-//     .mem_addr_i(mem_addr_i),
-//     .mem_resp_valid_o(mem_resp_valid_o),
-//     .mem_resp_ready_i(mem_resp_ready_i),
-//     .mem_data_o(mem_data_o)
-// );
-
-// // Clock generation
-// always #5 clk = ~clk;
-
-// // Test tasks
-// task reset_dut;
-// begin
-//     rst = 1'b1;
-//     mem_req_valid_i = 1'b0;
-//     mem_resp_ready_i = 1'b0;
-//     mem_addr_i = 32'h00000000;
-//     @(posedge clk);
-//     @(posedge clk);
-//     rst = 1'b0;
-//     @(posedge clk);
-// end
-// endtask
-
-// task memory_read(
-//     input [31:0] addr,
-//     output [31:0] data_result
-// );
-// begin
-//     // Send memory request
-//     wait(mem_req_ready_o);
-//     @(posedge clk);
-//     mem_req_valid_i = 1'b1;
-//     mem_addr_i = addr;
-//     @(posedge clk);
-//     mem_req_valid_i = 1'b0;
-    
-//     // Wait for response
-//     wait(mem_resp_valid_o);
-//     data_result = mem_data_o;
-//     mem_resp_ready_i = 1'b1;
-//     @(posedge clk);
-//     mem_resp_ready_i = 1'b0;
-//     @(posedge clk);
-// end
-// endtask
-
-// task verify_read(
-//     input [31:0] addr,
-//     input [31:0] exp_data,
-//     input [255:0] test_name
-// );
-// begin
-//     memory_read(addr, received_data);
-//     if (received_data !== exp_data) begin
-//         $display("ERROR [%s]: Data mismatch", test_name);
-//         $display("  Address:  0x%08h", addr);
-//         $display("  Expected: 0x%08h", exp_data);
-//         $display("  Got:      0x%08h", received_data);
-//         test_failed = test_failed + 1;
-//     end else begin
-//         $display("PASS [%s]: addr=0x%08h, data=0x%08h", test_name, addr, received_data);
-//         test_passed = test_passed + 1;
-//     end
-// end
-// endtask
-
-// task test_address_range(
-//     input [31:0] start_addr,
-//     input [31:0] end_addr,
-//     input [31:0] step,
-//     input [255:0] test_name
-// );
-// reg [31:0] current_addr;
-// integer done;
-// begin
-//     $display("\n--- %s ---", test_name);
-//     current_addr = start_addr;
-//     done = 0;
-//     while (!done && current_addr <= end_addr) begin
-//         memory_read(current_addr, received_data);
-//         $display("  addr=0x%08h -> data=0x%08h", current_addr, received_data);
-//         current_addr = current_addr + step;
-//         if (current_addr < start_addr) done = 1; // Overflow protection
-//     end
-// end
-// endtask
-
-// // Monitor memory transactions
-// task monitor_transaction(input [255:0] description);
-// begin
-//     $display("[MONITOR] %s", description);
-//     $display("  req_valid=%b, req_ready=%b", mem_req_valid_i, mem_req_ready_o);
-//     $display("  resp_valid=%b, resp_ready=%b", mem_resp_valid_o, mem_resp_ready_i);
-//     if (mem_req_valid_i && mem_req_ready_o) begin
-//         $display("  -> Request: addr=0x%08h", mem_addr_i);
-//     end
-//     if (mem_resp_valid_o && mem_resp_ready_i) begin
-//         $display("  <- Response: data=0x%08h", mem_data_o);
-//     end
-// end
-// endtask
-
-// // Back-to-back request test task
-// task test_back_to_back_requests(
-//     input integer num_requests
-// );
-// integer i;
-// reg [31:0] test_addresses [0:9]; // Up to 10 test addresses
-// reg [31:0] results [0:9];
-// begin
-//     $display("\n=== Back-to-Back Requests Test ===");
-    
-//     // Prepare test addresses
-//     test_addresses[0] = 32'h00001000; // Root page table area
-//     test_addresses[1] = 32'h00002000; // Level 2 page table area  
-//     test_addresses[2] = 32'h00003000; // Another Level 2 area
-//     test_addresses[3] = 32'h00000000; // Start of memory
-//     test_addresses[4] = 32'h00000100; // Different location
-//     test_addresses[5] = 32'h00001400; // Page table entry
-//     test_addresses[6] = 32'h00001800; // Another entry
-//     test_addresses[7] = 32'h00002400; // Level 2 entry
-//     test_addresses[8] = 32'h00003800; // Another L2 entry
-//     test_addresses[9] = 32'h00000E00; // Near end of accessible range
-    
-//     // Execute back-to-back requests
-//     for (i = 0; i < num_requests && i < 10; i = i + 1) begin
-//         $display("  Request %d: addr=0x%08h", i, test_addresses[i]);
-//         memory_read(test_addresses[i], results[i]);
-//         $display("    -> data=0x%08h", results[i]);
-//     end
-    
-//     $display("Back-to-back test completed");
-//     test_passed = test_passed + 1;
-// end
-// endtask
-
-// // Stress test task
-// task stress_test(input integer num_iterations);
-// integer i;
-// reg [31:0] random_addr;
-// reg [31:0] stress_data;
-// begin
-//     $display("\n=== Stress Test ===");
-//     for (i = 0; i < num_iterations; i = i + 1) begin
-//         // Generate word-aligned random address within range
-//         random_addr = ($random & 32'h00000FFC); // Keep within reasonable range and word-aligned
-//         memory_read(random_addr, stress_data);
-//         if (i % 10 == 0) begin
-//             $display("  Stress %d: addr=0x%08h -> data=0x%08h", i, random_addr, stress_data);
-//         end
-//     end
-//     $display("Stress test completed: %d iterations", num_iterations);
-//     test_passed = test_passed + 1;
-// end
-// endtask
-
-// // Main test sequence
-// initial begin
-//     // Initialize
-//     clk = 1'b0;
-//     test_passed = 0;
-//     test_failed = 0;
-    
-//     $display("========================================");
-//     $display("Memory Unit Test Starting");
-//     $display("========================================");
-    
-//     // Test 1: Reset functionality
-//     $display("\n=== Test 1: Reset Functionality ===");
-//     reset_dut();
-//     if (!mem_req_ready_o) begin
-//         $display("ERROR: Memory not ready after reset");
-//         test_failed = test_failed + 1;
-//     end else begin
-//         $display("PASS: Memory ready after reset");
-//         test_passed = test_passed + 1;
-//     end
-    
-//     // Test 2: Basic memory read - initialized locations
-//     $display("\n=== Test 2: Read Initialized Page Table Entries ===");
-    
-//     // Test root page table entries (at 0x1000 = word index 1024, but we use 256 in our init)
-//     verify_read(32'h00001000, 32'h00002001, "Root PT entry 0");  // Should map to our init
-//     verify_read(32'h00001004, 32'h00003001, "Root PT entry 1");
-    
-//     // Test level 2 page table entries (at 0x2000 = word index 512) 
-//     verify_read(32'h00002000, 32'h1000000F, "L2 PT entry 0");
-//     verify_read(32'h00002004, 32'h1100000F, "L2 PT entry 1");
-    
-//     // Test 3: Read uninitialized memory (should return 0)
-//     $display("\n=== Test 3: Read Uninitialized Memory ===");
-//     verify_read(32'h00000000, 32'h00000000, "Uninitialized memory");
-//     verify_read(32'h00000100, 32'h00000000, "Another uninitialized location");
-    
-//     // Test 4: Word alignment test
-//     $display("\n=== Test 4: Word Alignment Test ===");
-//     // All addresses should be word-aligned for proper operation
-//     verify_read(32'h00001000, 32'h00002001, "Word aligned 0x1000");
-//     verify_read(32'h00001004, 32'h00003001, "Word aligned 0x1004");
-//     verify_read(32'h00001008, 32'h00000000, "Word aligned 0x1008");
-//     verify_read(32'h0000100C, 32'h00000000, "Word aligned 0x100C");
-    
-//     // Test 5: Address boundary tests
-//     $display("\n=== Test 5: Address Boundary Tests ===");
-//     verify_read(32'h00000000, 32'h00000000, "Start of memory");
-//     verify_read(32'h00000FFC, 32'h00000000, "Near end of range");
-    
-//     // Test 6: Out of range access
-//     $display("\n=== Test 6: Out of Range Access ===");
-//     verify_read(32'h00010000, 32'h00000000, "Out of range (should return 0)");
-//     verify_read(32'hFFFFFFFC, 32'h00000000, "Far out of range");
-    
-//     // Test 7: Page table structure verification
-//     $display("\n=== Test 7: Page Table Structure Verification ===");
-    
-//     // Check if our initialization worked correctly
-//     test_address_range(32'h00001000, 32'h00001010, 32'h4, "Root page table area");
-//     test_address_range(32'h00002000, 32'h00002010, 32'h4, "Level 2 page table area");
-//     test_address_range(32'h00003000, 32'h00003008, 32'h4, "Another Level 2 area");
-    
-//     // Test 8: Specific page table entries
-//     $display("\n=== Test 8: Specific Page Table Entries ===");
-    
-//     // Test megapage entry (if it exists in our address space)
-//     memory_read(32'h00001000 + (32'h123 * 4), received_data);
-//     if (received_data != 32'h00000000) begin
-//         $display("PASS: Found megapage entry at VPN[31:22]=0x123: data=0x%08h", received_data);
-//         test_passed = test_passed + 1;
-//     end else begin
-//         $display("INFO: Megapage entry not in accessible range");
-//     end
-    
-//     // Test specific L2 entries
-//     verify_read(32'h00002000 + (32'h234 * 4), 32'h23400007, "L2 entry VPN[21:12]=0x234");
-    
-//     // Test 9: Back-to-back requests
-//     test_back_to_back_requests(8);
-    
-//     // Test 10: Response delay handling
-//     $display("\n=== Test 10: Response Delay Handling ===");
-    
-//     // Test with delayed response acceptance
-//     fork
-//         begin
-//             memory_read(32'h00001000, received_data);
-//             verify_read(received_data, 32'h00002001, "Delayed response test");
-//         end
-//         begin
-//             // Add some delay before accepting response
-//             wait(mem_resp_valid_o);
-//             repeat(3) @(posedge clk);
-//         end
-//     join
-    
-//     // Test 11: Multiple rapid requests
-//     $display("\n=== Test 11: Multiple Rapid Requests ===");
-    
-//     repeat(5) begin
-//         test_addr = $random & 32'h00000FFC; // Word-aligned random address
-//         memory_read(test_addr, received_data);
-//         $display("  Rapid test: addr=0x%08h -> data=0x%08h", test_addr, received_data);
-//     end
-//     test_passed = test_passed + 1;
-    
-//     // Test 12: Stress test
-//     stress_test(50);
-    
-//     // Test 13: State machine robustness
-//     $display("\n=== Test 13: State Machine Robustness ===");
-    
-//     // Test request without response ready
-//     @(posedge clk);
-//     mem_req_valid_i = 1'b1;
-//     mem_addr_i = 32'h00000400;
-//     @(posedge clk);
-//     mem_req_valid_i = 1'b0;
-    
-//     // Wait for response but don't accept immediately
-//     wait(mem_resp_valid_o);
-//     repeat(3) @(posedge clk); // Wait a few cycles
-    
-//     mem_resp_ready_i = 1'b1;
-//     @(posedge clk);
-//     mem_resp_ready_i = 1'b0;
-    
-//     $display("PASS: State machine handled delayed response acceptance");
-//     test_passed = test_passed + 1;
-    
-//     // Final report
-//     #100;
-//     $display("\n========================================");
-//     $display("Memory Test Summary:");
-//     $display("  Tests Passed: %d", test_passed);
-//     $display("  Tests Failed: %d", test_failed);
-    
-//     if (test_failed == 0) begin
-//         $display("  ALL TESTS PASSED!");
-//     end else begin
-//         $display("  SOME TESTS FAILED!");
-//     end
-//     $display("========================================");
-    
-//     $finish;
-// end
-
-// // Timeout watchdog
-// initial begin
-//     #50000;
-//     $display("ERROR: Memory test timeout!");
-//     $finish;
-// end
-
-// endmodule

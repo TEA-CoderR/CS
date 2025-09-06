@@ -35,24 +35,20 @@ reg [31:0] mem_addr_reg;
 // Address translation: byte address to word index
 // Assuming word-aligned accesses (ignore bottom 2 bits)
 wire [MEM_ADDR_WIDTH-1:0] word_index = mem_addr_reg[MEM_ADDR_WIDTH+1:2];
-wire addr_valid = (word_index < MEM_SIZE);
+wire addr_valid = (mem_addr_reg[31:2] < MEM_SIZE);
 
 // ===================================================================
 // Memory Access State Machine
 // ===================================================================
 
 // Sequential logic
-// always @(posedge clk) begin
-//     if (rst) begin
-//         state <= IDLE;
-//         mem_req_ready_o <= 1'b1;
-//         mem_resp_valid_o <= 1'b0;
-//         mem_data_o <= 32'h00000000;
-//         mem_addr_reg <= 32'h00000000;
-//     end else begin
-//         state <= next_state;
-//     end
-// end
+always @(posedge clk) begin
+    if (rst) begin
+        state <= IDLE;
+    end else begin
+        state <= next_state;
+    end
+end
 
 // Next state logic
 always @(*) begin
@@ -60,7 +56,7 @@ always @(*) begin
     
     case (state)
         IDLE: begin
-            if (mem_req_valid_i) begin
+            if (mem_req_valid_i/* && mem_req_ready_o*/) begin
                 next_state = READ_ACCESS;
             end
         end
@@ -70,7 +66,7 @@ always @(*) begin
         end
         
         RESPOND: begin
-            if (mem_resp_ready_i) begin
+            if (mem_resp_ready_i/* && mem_resp_valid_o*/) begin
                 next_state = IDLE;
             end
         end
@@ -84,17 +80,16 @@ end
 // Output and control logic
 always @(posedge clk) begin
     if (rst) begin
-        state <= IDLE;
         mem_req_ready_o <= 1'b1;
         mem_resp_valid_o <= 1'b0;
         mem_data_o <= 32'h00000000;
         mem_addr_reg <= 32'h00000000;
     end else begin
-        state <= next_state;
-        
+
         case (state)
             IDLE: begin
-                if (mem_req_valid_i) begin
+                //mem_req_ready_o <= 1'b1;
+                if (mem_req_valid_i/* && mem_req_ready_o*/) begin
                     // Accept request
                     mem_addr_reg <= mem_addr_i;
                     mem_req_ready_o <= 1'b0;                  
@@ -114,7 +109,8 @@ always @(posedge clk) begin
             end
             
             RESPOND: begin
-                if (mem_resp_ready_i) begin
+                //mem_resp_valid_o <= 1'b1;
+                if (mem_resp_ready_i/* && mem_resp_valid_o*/) begin
                     // Response accepted
                     mem_resp_valid_o <= 1'b0;
                     mem_req_ready_o <= 1'b1;

@@ -3,185 +3,443 @@ Page table structure (1024-word memory):
   Root PT at 0x0400 (word index 256)
   L2 PT at 0x0800 (word index 512)
   Usable address range: 0x0000-0x00000ffc
+VCD info: dumpfile test_memory.vcd opened for output.
 ========================================
 Memory Unit Test Starting (Fixed Version)
 ========================================
 
 === Test 1: Reset Functionality ===
+Time: 5, State:        @D@@, req_valid=0, req_ready=x, resp_valid=x, resp_ready=0
+Time: 15, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 25, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS: Memory ready after reset
 
 === Test 2: Read Uninitialized Memory ===
 [MEM] Request: addr=0x00000000, word_idx=   0
+Time: 35, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 45, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 55, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 65, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 75, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [                 Start of memory]: addr=0x00000000, data=0x00000000
+Time: 85, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000004, word_idx=   1
+Time: 95, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 105, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 115, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 125, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [                          Word 1]: addr=0x00000004, data=0x00000000
 [MEM] Request: addr=0x00000100, word_idx=  64
+Time: 135, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 145, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 155, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 165, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 175, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [              Different location]: addr=0x00000100, data=0x00000000
 
 === Test 3: Read Page Table Entries ===
+Time: 185, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000400, word_idx= 256
-ERROR [                 Root PT entry 0]: Data mismatch
-  Address:  0x00000400
-  Expected: 0x00000801
-  Got:      0x00000000
+Time: 195, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 205, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000801
+Time: 215, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 225, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                 Root PT entry 0]: addr=0x00000400, data=0x00000801
 [MEM] Request: addr=0x00000404, word_idx= 257
-ERROR [                 Root PT entry 1]: Data mismatch
-  Address:  0x00000404
-  Expected: 0x12340007
-  Got:      0x00000801
+Time: 235, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 245, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x12340007
+Time: 255, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 265, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 275, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                 Root PT entry 1]: addr=0x00000404, data=0x12340007
+Time: 285, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000408, word_idx= 258
-ERROR [       Root PT entry 2 (invalid)]: Data mismatch
-  Address:  0x00000408
-  Expected: 0x00000000
-  Got:      0x12340007
+Time: 295, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 305, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 315, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 325, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [       Root PT entry 2 (invalid)]: addr=0x00000408, data=0x00000000
 [MEM] Request: addr=0x00000800, word_idx= 512
-ERROR [                   L2 PT entry 0]: Data mismatch
-  Address:  0x00000800
-  Expected: 0x1000000f
-  Got:      0x00000000
+Time: 335, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 345, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x1000000f
+Time: 355, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 365, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 375, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                   L2 PT entry 0]: addr=0x00000800, data=0x1000000f
+Time: 385, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000804, word_idx= 513
-ERROR [                   L2 PT entry 1]: Data mismatch
-  Address:  0x00000804
-  Expected: 0x1100000f
-  Got:      0x1000000f
+Time: 395, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 405, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x1100000f
+Time: 415, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 425, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                   L2 PT entry 1]: addr=0x00000804, data=0x1100000f
 [MEM] Request: addr=0x00000808, word_idx= 514
-ERROR [                   L2 PT entry 2]: Data mismatch
-  Address:  0x00000808
-  Expected: 0x12000007
-  Got:      0x1100000f
+Time: 435, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 445, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x12000007
+Time: 455, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 465, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 475, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                   L2 PT entry 2]: addr=0x00000808, data=0x12000007
+Time: 485, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x0000080c, word_idx= 515
-ERROR [         L2 PT entry 3 (invalid)]: Data mismatch
-  Address:  0x0000080c
-  Expected: 0x00000000
-  Got:      0x12000007
+Time: 495, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 505, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 515, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 525, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [         L2 PT entry 3 (invalid)]: addr=0x0000080c, data=0x00000000
 
 === Test 4: Word Alignment Test ===
 [MEM] Request: addr=0x00000400, word_idx= 256
-ERROR [              Word aligned 0x400]: Data mismatch
-  Address:  0x00000400
-  Expected: 0x00000801
-  Got:      0x00000000
+Time: 535, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 545, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000801
+Time: 555, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 565, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 575, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [              Word aligned 0x400]: addr=0x00000400, data=0x00000801
+Time: 585, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000404, word_idx= 257
-ERROR [              Word aligned 0x404]: Data mismatch
-  Address:  0x00000404
-  Expected: 0x12340007
-  Got:      0x00000801
+Time: 595, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 605, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x12340007
+Time: 615, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 625, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [              Word aligned 0x404]: addr=0x00000404, data=0x12340007
 [MEM] Request: addr=0x00000408, word_idx= 258
-ERROR [              Word aligned 0x408]: Data mismatch
-  Address:  0x00000408
-  Expected: 0x00000000
-  Got:      0x12340007
+Time: 635, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 645, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 655, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 665, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 675, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [              Word aligned 0x408]: addr=0x00000408, data=0x00000000
+Time: 685, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x0000040c, word_idx= 259
+Time: 695, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 705, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 715, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 725, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [              Word aligned 0x40C]: addr=0x0000040c, data=0x00000000
 
 === Test 5: Address Boundary Tests ===
 [MEM] Request: addr=0x00000000, word_idx=   0
+Time: 735, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 745, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 755, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 765, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 775, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [                 Start of memory]: addr=0x00000000, data=0x00000000
+Time: 785, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000ffc, word_idx=1023
+Time: 795, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 805, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 815, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 825, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [        End of range (word 1023)]: addr=0x00000ffc, data=0x00000000
 
 === Test 6: Out of Range Access ===
 [MEM] Request: addr=0x00001000, word_idx=   0
+Time: 835, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 845, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 855, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 865, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 875, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [               Just out of range]: addr=0x00001000, data=0x00000000
+Time: 885, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00010000, word_idx=   0
+Time: 895, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 905, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 915, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 925, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS [                Far out of range]: addr=0x00010000, data=0x00000000
 
 === Test 7: Page Table Structure Scan ===
 Root page table area (0x400-0x410):
 [MEM] Request: addr=0x00000400, word_idx= 256
-  0x00000400 -> 0x00000000
+Time: 935, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 945, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000801
+Time: 955, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 965, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 975, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+  0x00000400 -> 0x00000801
+Time: 985, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000404, word_idx= 257
-  0x00000404 -> 0x00000801
+Time: 995, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1005, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x12340007
+Time: 1015, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1025, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+  0x00000404 -> 0x12340007
 [MEM] Request: addr=0x00000408, word_idx= 258
-  0x00000408 -> 0x12340007
+Time: 1035, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1045, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 1055, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1065, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1075, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+  0x00000408 -> 0x00000000
+Time: 1085, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x0000040c, word_idx= 259
+Time: 1095, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1105, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 1115, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1125, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
   0x0000040c -> 0x00000000
 [MEM] Request: addr=0x00000410, word_idx= 260
+Time: 1135, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1145, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 1155, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1165, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1175, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
   0x00000410 -> 0x00000000
 Level 2 page table area (0x800-0x810):
+Time: 1185, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000800, word_idx= 512
-  0x00000800 -> 0x00000000
+Time: 1195, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1205, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x1000000f
+Time: 1215, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1225, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+  0x00000800 -> 0x1000000f
 [MEM] Request: addr=0x00000804, word_idx= 513
-  0x00000804 -> 0x1000000f
+Time: 1235, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1245, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x1100000f
+Time: 1255, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1265, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1275, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+  0x00000804 -> 0x1100000f
+Time: 1285, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000808, word_idx= 514
-  0x00000808 -> 0x1100000f
+Time: 1295, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1305, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x12000007
+Time: 1315, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1325, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+  0x00000808 -> 0x12000007
 [MEM] Request: addr=0x0000080c, word_idx= 515
-  0x0000080c -> 0x12000007
+Time: 1335, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1345, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 1355, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1365, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1375, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+  0x0000080c -> 0x00000000
+Time: 1385, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000810, word_idx= 516
+Time: 1395, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1405, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 1415, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1425, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
   0x00000810 -> 0x00000000
 
 === Test 8: Back-to-Back Requests ===
 [MEM] Request: addr=0x00000400, word_idx= 256
-ERROR [                  Back-to-back 1]: Data mismatch
-  Address:  0x00000400
-  Expected: 0x00000801
-  Got:      0x00000000
+Time: 1435, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1445, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000801
+Time: 1455, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1465, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1475, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                  Back-to-back 1]: addr=0x00000400, data=0x00000801
+Time: 1485, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000800, word_idx= 512
-ERROR [                  Back-to-back 2]: Data mismatch
-  Address:  0x00000800
-  Expected: 0x1000000f
-  Got:      0x00000801
+Time: 1495, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1505, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x1000000f
+Time: 1515, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1525, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                  Back-to-back 2]: addr=0x00000800, data=0x1000000f
 [MEM] Request: addr=0x00000404, word_idx= 257
-ERROR [                  Back-to-back 3]: Data mismatch
-  Address:  0x00000404
-  Expected: 0x12340007
-  Got:      0x1000000f
+Time: 1535, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1545, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x12340007
+Time: 1555, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1565, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1575, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                  Back-to-back 3]: addr=0x00000404, data=0x12340007
 
 === Test 9: Response Delay Handling ===
+Time: 1585, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000400, word_idx= 256
-ERROR [                Delayed response]: Data mismatch
-  Expected: 0x00000801
-  Got:      0x12340007
+Time: 1595, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1605, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000801
+Time: 1615, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1625, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS [                Delayed response]: data=0x00000801
 
 === Test 10: Rapid Sequential Requests ===
 [MEM] Request: addr=0x00000000, word_idx=   0
-ERROR: Rapid test           0 failed. addr=0x00000000, exp=0x00000000, got=0x00000801
+Time: 1635, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1645, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 1655, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1665, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1675, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Rapid test           0: addr=0x00000000 -> 0x00000000
+Time: 1685, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000400, word_idx= 256
-ERROR: Rapid test           1 failed. addr=0x00000400, exp=0x00000801, got=0x00000000
+Time: 1695, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1705, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000801
+Time: 1715, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1725, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Rapid test           1: addr=0x00000400 -> 0x00000801
 [MEM] Request: addr=0x00000404, word_idx= 257
-ERROR: Rapid test           2 failed. addr=0x00000404, exp=0x12340007, got=0x00000801
+Time: 1735, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1745, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x12340007
+Time: 1755, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1765, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1775, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Rapid test           2: addr=0x00000404 -> 0x12340007
+Time: 1785, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000800, word_idx= 512
-ERROR: Rapid test           3 failed. addr=0x00000800, exp=0x1000000f, got=0x12340007
+Time: 1795, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1805, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x1000000f
+Time: 1815, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1825, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Rapid test           3: addr=0x00000800 -> 0x1000000f
 [MEM] Request: addr=0x00000804, word_idx= 513
-ERROR: Rapid test           4 failed. addr=0x00000804, exp=0x1100000f, got=0x1000000f
+Time: 1835, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1845, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x1100000f
+Time: 1855, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1865, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 1875, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Rapid test           4: addr=0x00000804 -> 0x1100000f
 
 === Test 11: State Machine Robustness ===
+Time: 1885, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000400, word_idx= 256
+Time: 1895, State:        IDLE, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1905, State: READ_ACCESS, req_valid=0, req_ready=0, resp_valid=0, resp_ready=0
+Time: 1915, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=0
+Time: 1925, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=0
+Time: 1935, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=0
+Time: 1945, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=0
 PASS: State machine handled delayed acceptance correctly
 [MEM] Response: data=0x00000801
+Time: 1955, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 1965, State:     RESPOND, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
 
 === Test 12: Comprehensive Address Test ===
+Time: 1975, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 1985, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000000, word_idx=   0
+Time: 1995, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 2005, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 2015, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2025, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS: Comprehensive test           0
 [MEM] Request: addr=0x00000400, word_idx= 256
-ERROR: Comprehensive test           1 failed
-  addr=0x00000400, exp=0x00000801, got=0x00000000
+Time: 2035, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2045, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000801
+Time: 2055, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 2065, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2075, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Comprehensive test           1
+Time: 2085, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000404, word_idx= 257
-ERROR: Comprehensive test           2 failed
-  addr=0x00000404, exp=0x12340007, got=0x00000801
+Time: 2095, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 2105, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x12340007
+Time: 2115, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2125, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Comprehensive test           2
 [MEM] Request: addr=0x00000408, word_idx= 258
-ERROR: Comprehensive test           3 failed
-  addr=0x00000408, exp=0x00000000, got=0x12340007
+Time: 2135, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2145, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 2155, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 2165, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2175, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Comprehensive test           3
+Time: 2185, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000800, word_idx= 512
-ERROR: Comprehensive test           4 failed
-  addr=0x00000800, exp=0x1000000f, got=0x00000000
+Time: 2195, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 2205, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x1000000f
+Time: 2215, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2225, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Comprehensive test           4
 [MEM] Request: addr=0x00000804, word_idx= 513
-ERROR: Comprehensive test           5 failed
-  addr=0x00000804, exp=0x1100000f, got=0x1000000f
+Time: 2235, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2245, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x1100000f
+Time: 2255, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 2265, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2275, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Comprehensive test           5
+Time: 2285, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000808, word_idx= 514
-ERROR: Comprehensive test           6 failed
-  addr=0x00000808, exp=0x12000007, got=0x1100000f
+Time: 2295, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 2305, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x12000007
+Time: 2315, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2325, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Comprehensive test           6
 [MEM] Request: addr=0x0000080c, word_idx= 515
-ERROR: Comprehensive test           7 failed
-  addr=0x0000080c, exp=0x00000000, got=0x12000007
+Time: 2335, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2345, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 2355, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 2365, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2375, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+PASS: Comprehensive test           7
+Time: 2385, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
 [MEM] Request: addr=0x00000ffc, word_idx=1023
+Time: 2395, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+Time: 2405, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+[MEM] Response: data=0x00000000
+Time: 2415, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2425, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS: Comprehensive test           8
 [MEM] Request: addr=0x00001000, word_idx=   0
+Time: 2435, State:        IDLE, req_valid=1, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2445, State: READ_ACCESS, req_valid=1, req_ready=0, resp_valid=0, resp_ready=0
+[MEM] Response: data=0x00000000
+Time: 2455, State:     RESPOND, req_valid=0, req_ready=0, resp_valid=1, resp_ready=1
+Time: 2465, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=1
+Time: 2475, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 PASS: Comprehensive test           9
+Time: 2485, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2495, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2505, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2515, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2525, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2535, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2545, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2555, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
+Time: 2565, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
 
 ========================================
 Memory Test Summary:
-  Tests Passed:          13
-  Tests Failed:          26
-  SOME TESTS FAILED!
+  Tests Passed:          39
+  Tests Failed:           0
+  ALL TESTS PASSED!
 ========================================
+Time: 2575, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
