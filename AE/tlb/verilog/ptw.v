@@ -265,9 +265,8 @@ wire [9:0] vpn0 = vaddr_reg[21:12]; // Level 2 VPN
 
 // Level 1 PTE address = base + VPN1*4
 wire [31:0] level1_pte_addr = SATP_PPN + {vpn1, 2'b00};
-// Level 2 PTE address = (L1_PTE[31:12] << 12) + VPN0*4  
-//wire [31:0] level2_pte_addr = {level1_pte[31:12], 12'b00} + {vpn0, 2'b00};
-wire [31:0] level2_pte_addr = level1_pte + {vpn0, 2'b00};
+// Level 2 PTE address = (L1_PTE[31:10] << 10) + VPN0*4  
+wire [31:0] level2_pte_addr = {level1_pte[31:10], 10'b00} + {vpn0, 2'b00};
 
 // ===================================================================
 // Page Table Walker State Machine
@@ -463,9 +462,9 @@ always @(posedge clk) begin
     if (ptw_resp_valid_o && ptw_resp_ready_i) begin
         $display("[PTW] Response: pte=0x%08h", ptw_pte_o);
     end
-    if (state != next_state) begin
-        $display("[PTW] State change: %d -> %d", state, next_state);
-    end
+    // if (state != next_state) begin
+    //     $display("[PTW] State change: %d -> %d", state, next_state);
+    // end
 end
 
 endmodule
