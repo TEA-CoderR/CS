@@ -1,5 +1,5 @@
 $date
-	Sun Sep  7 15:33:24 2025
+	Sun Sep  7 15:51:18 2025
 $end
 $version
 	Icarus Verilog
@@ -7,7 +7,7 @@ $end
 $timescale
 	1s
 $end
-$scope module test_tlb_integration $end
+$scope module test_integration_tlb $end
 $var wire 1 ! resp_valid_o $end
 $var wire 1 " req_ready_o $end
 $var wire 32 # ptw_vaddr_o [31:0] $end

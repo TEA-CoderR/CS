@@ -28,6 +28,56 @@ module tlb_controller (
     output reg [2:0] next_state
 );
 
+// Next state logic (combinational)
+always @(*) begin
+    // Default: stay in current state
+    next_state = state;
+    
+    case (state)
+        ACCEPT_REQ: begin
+            if (req_valid_i) begin
+                next_state = LOOKUP;
+            end
+        end
+        
+        LOOKUP: begin
+            if (hit && !perm_fault) begin
+                next_state = RESPOND;
+            end else if (hit && perm_fault) begin
+                next_state = RESPOND;
+            end else begin
+                next_state = PTW_REQ;
+            end
+        end
+        
+        PTW_REQ: begin
+            if (ptw_req_ready_i) begin
+                next_state = PTW_PENDING;
+            end
+        end
+        
+        PTW_PENDING: begin
+            if (ptw_resp_valid_i) begin
+                next_state = UPDATE;
+            end
+        end
+        
+        UPDATE: begin
+            next_state = RESPOND;
+        end
+        
+        RESPOND: begin
+            if (resp_ready_i) begin
+                next_state = ACCEPT_REQ;
+            end
+        end
+        
+        default: begin
+            next_state = ACCEPT_REQ;
+        end
+    endcase
+end
+
 // State machine - sequential logic
 always @(posedge clk) begin
     if (rst) begin
@@ -115,56 +165,6 @@ always @(posedge clk) begin
             end
         endcase
     end
-end
-
-// Next state logic (combinational)
-always @(*) begin
-    // Default: stay in current state
-    next_state = state;
-    
-    case (state)
-        ACCEPT_REQ: begin
-            if (req_valid_i) begin
-                next_state = LOOKUP;
-            end
-        end
-        
-        LOOKUP: begin
-            if (hit && !perm_fault) begin
-                next_state = RESPOND;
-            end else if (hit && perm_fault) begin
-                next_state = RESPOND;
-            end else begin
-                next_state = PTW_REQ;
-            end
-        end
-        
-        PTW_REQ: begin
-            if (ptw_req_ready_i) begin
-                next_state = PTW_PENDING;
-            end
-        end
-        
-        PTW_PENDING: begin
-            if (ptw_resp_valid_i) begin
-                next_state = UPDATE;
-            end
-        end
-        
-        UPDATE: begin
-            next_state = RESPOND;
-        end
-        
-        RESPOND: begin
-            if (resp_ready_i) begin
-                next_state = ACCEPT_REQ;
-            end
-        end
-        
-        default: begin
-            next_state = ACCEPT_REQ;
-        end
-    endcase
 end
 
 endmodule

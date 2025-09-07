@@ -15,7 +15,7 @@ TB_LRU = test_tlb_lru.v
 TB_PTW = test_ptw.v
 TB_MEMORY = test_memory.v
 TB_INTEGRATION_MEMORY_PTW = test_integration_memory_ptw.v
-TB_INTEGRATION = test_tlb_integration.v
+TB_INTEGRATION_TLB = test_integration_tlb.v
 
 # Output directories
 BUILD_DIR = build
@@ -71,14 +71,14 @@ test_integration_memory_ptw: $(BUILD_DIR)/test_integration_memory_ptw$(EXT)
 	@if [ -f test_integration_memory_ptw.vcd ]; then mv test_integration_memory_ptw.vcd $(WAVE_DIR)/; fi
 	@echo ""
 
-test_integration: $(BUILD_DIR)/test_integration$(EXT)
+test_integration_tlb: $(BUILD_DIR)/test_integration_tlb$(EXT)
 	@echo "=== Running TLB Integration Test ==="
-	$(RUN) $(BUILD_DIR)/test_integration$(EXT) | tee $(LOG_DIR)/test_integration.log
-	@if [ -f tlb_integration.vcd ]; then mv tlb_integration.vcd $(WAVE_DIR)/; fi
+	$(RUN) $(BUILD_DIR)/test_integration_tlb$(EXT) | tee $(LOG_DIR)/test_integration_tlb.log
+	@if [ -f test_integration_tlb.vcd ]; then mv test_integration_tlb.vcd $(WAVE_DIR)/; fi
 	@echo ""
 
 # Run all tests
-test_all: test_storage test_lookup test_lru test_ptw test_memory test_integration_memory_ptw test_integration
+test_all: test_storage test_lookup test_lru test_ptw test_memory test_integration_memory_ptw test_integration_tlb
 	@echo "========================================="
 	@echo "All tests completed. Check logs directory for details."
 	@echo "========================================="
@@ -108,12 +108,12 @@ $(BUILD_DIR)/test_memory$(EXT): $(TB_MEMORY) memory.v $(PARAM_FILE)
 $(BUILD_DIR)/test_integration_memory_ptw$(EXT): $(TB_INTEGRATION_MEMORY_PTW) $(SRC_FILES) $(PARAM_FILE)
 	$(COMPILE) -o $@ $(TB_INTEGRATION_MEMORY_PTW) $(SRC_FILES)
 
-$(BUILD_DIR)/test_integration$(EXT): $(TB_INTEGRATION) $(SRC_FILES) $(PARAM_FILE)
-	$(COMPILE) -o $@ $(TB_INTEGRATION) $(SRC_FILES)
+$(BUILD_DIR)/test_integration_tlb$(EXT): $(TB_INTEGRATION_TLB) $(SRC_FILES) $(PARAM_FILE)
+	$(COMPILE) -o $@ $(TB_INTEGRATION_TLB) $(SRC_FILES)
 
 # View waveforms (for iverilog with gtkwave)
-wave: $(WAVE_DIR)/tlb_integration.vcd
-	gtkwave $(WAVE_DIR)/tlb_integration.vcd &
+wave: $(WAVE_DIR)/test_integration_tlb.vcd
+	gtkwave $(WAVE_DIR)/test_integration_tlb.vcd &
 
 # Coverage report (if using VCS)
 coverage:
@@ -143,7 +143,7 @@ help:
 	@echo "  test_ptw       - Run PTW module test"
 	@echo "  test_memory    - Run MEMORY module test"
 	@echo "  test_integration_memory_ptw - Run integration test"
-	@echo "  test_integration - Run integration test"
+	@echo "  test_integration_tlb - Run integration test"
 	@echo "  wave           - View waveforms (requires gtkwave)"
 	@echo "  coverage       - Generate coverage report (VCS only)"
 	@echo "  clean          - Clean all generated files"

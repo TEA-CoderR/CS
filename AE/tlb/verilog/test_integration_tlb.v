@@ -514,12 +514,12 @@
 
 
 
-// test_tlb_integration.v
+// test_integration_tlb.v
 
 //`timescale 1ns/1ps
 `include "tlb_params.vh"
 
-module test_tlb_integration;
+module test_integration_tlb;
 
 // Clock and reset
 reg clk;
@@ -919,8 +919,8 @@ end
 
 // VCD dump for waveform viewing
 initial begin
-    $dumpfile("tlb_integration.vcd");
-    $dumpvars(0, test_tlb_integration);
+    $dumpfile("test_integration_tlb.vcd");
+    $dumpvars(0, test_integration_tlb);
 end
 
 endmodule
