@@ -4,7 +4,7 @@
 
 //`timescale 1ns/1ps
 
-module test_integrated_memory_ptw;
+module test_integration_memory_ptw;
 
 // Clock and reset
 reg clk;
@@ -242,8 +242,8 @@ integer i;
 reg [31:0] test_vaddrs [0:7];
 reg [31:0] expected_ptes [0:7];
 initial begin
-    $dumpfile("test_integrated_memory_ptw.vcd");
-    $dumpvars(0, test_integrated_memory_ptw);
+    $dumpfile("test_integration_memory_ptw.vcd");
+    $dumpvars(0, test_integration_memory_ptw);
     
     // Initialize
     clk = 1'b0;

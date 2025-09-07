@@ -3,7 +3,7 @@ Page table structure (1024-word memory):
   Root PT at 0x0400 (word index 256)
   L2 PT at 0x0800 (word index 512)
   Usable address range: 0x0000-0x00000ffc
-VCD info: dumpfile test_integrated_memory_ptw.vcd opened for output.
+VCD info: dumpfile test_integration_memory_ptw.vcd opened for output.
 ================================================
 Memory-PTW Integrated Test Starting
 ================================================
