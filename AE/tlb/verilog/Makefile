@@ -14,6 +14,7 @@ TB_LOOKUP = test_tlb_lookup.v
 TB_LRU = test_tlb_lru.v
 TB_PTW = test_ptw.v
 TB_MEMORY = test_memory.v
+TB_INTEGRATION_MEMORY_PTW = test_integration_memory_ptw.v
 TB_INTEGRATION = test_tlb_integration.v
 
 # Output directories
@@ -64,6 +65,12 @@ test_memory: $(BUILD_DIR)/test_memory$(EXT)
 	$(RUN) $(BUILD_DIR)/test_memory$(EXT) | tee $(LOG_DIR)/test_memory.log
 	@echo ""
 
+test_integration_memory_ptw: $(BUILD_DIR)/test_integration_memory_ptw$(EXT)
+	@echo "=== Running MEMORY PTW Integration Test ==="
+	$(RUN) $(BUILD_DIR)/test_integration_memory_ptw$(EXT) | tee $(LOG_DIR)/test_integration_memory_ptw.log
+	@if [ -f test_integration_memory_ptw.vcd ]; then mv test_integration_memory_ptw.vcd $(WAVE_DIR)/; fi
+	@echo ""
+
 test_integration: $(BUILD_DIR)/test_integration$(EXT)
 	@echo "=== Running TLB Integration Test ==="
 	$(RUN) $(BUILD_DIR)/test_integration$(EXT) | tee $(LOG_DIR)/test_integration.log
@@ -71,7 +78,7 @@ test_integration: $(BUILD_DIR)/test_integration$(EXT)
 	@echo ""
 
 # Run all tests
-test_all: test_storage test_lookup test_lru test_ptw test_memory test_integration
+test_all: test_storage test_lookup test_lru test_ptw test_memory test_integration_memory_ptw test_integration
 	@echo "========================================="
 	@echo "All tests completed. Check logs directory for details."
 	@echo "========================================="
@@ -97,6 +104,9 @@ $(BUILD_DIR)/test_ptw$(EXT): $(TB_PTW) ptw.v $(PARAM_FILE)
 
 $(BUILD_DIR)/test_memory$(EXT): $(TB_MEMORY) memory.v $(PARAM_FILE)
 	$(COMPILE) -o $@ $(TB_MEMORY) memory.v
+
+$(BUILD_DIR)/test_integration_memory_ptw$(EXT): $(TB_INTEGRATION_MEMORY_PTW) $(SRC_FILES) $(PARAM_FILE)
+	$(COMPILE) -o $@ $(TB_INTEGRATION_MEMORY_PTW) $(SRC_FILES)
 
 $(BUILD_DIR)/test_integration$(EXT): $(TB_INTEGRATION) $(SRC_FILES) $(PARAM_FILE)
 	$(COMPILE) -o $@ $(TB_INTEGRATION) $(SRC_FILES)
@@ -132,6 +142,7 @@ help:
 	@echo "  test_lru       - Run LRU module test"
 	@echo "  test_ptw       - Run PTW module test"
 	@echo "  test_memory    - Run MEMORY module test"
+	@echo "  test_integration_memory_ptw - Run integration test"
 	@echo "  test_integration - Run integration test"
 	@echo "  wave           - View waveforms (requires gtkwave)"
 	@echo "  coverage       - Generate coverage report (VCS only)"
@@ -147,4 +158,4 @@ help:
 	@echo "  make test_integration SIM=vcs"
 	@echo "  make clean"
 
-.PHONY: all test_all unit_tests test_storage test_lookup test_lru test_ptw test_memory test_integration wave coverage clean help
+.PHONY: all test_all unit_tests test_storage test_lookup test_lru test_ptw test_memory test_integration_memory_ptw test_integration wave coverage clean help

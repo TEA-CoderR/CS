@@ -419,8 +419,9 @@ begin
     while (ptw_req_ready_o !== 1'b1) @(posedge clk);
     ptw_req_valid_i = 1'b1;
     ptw_vaddr_i = vaddr;
-    @(posedge clk);
-    @(posedge clk);
+    // @(posedge clk);
+    // @(posedge clk);
+    do @(posedge clk); while (ptw_req_ready_o !== 1'b0); 
     ptw_req_valid_i = 1'b0;
     
     // 2. 等待PTW完成

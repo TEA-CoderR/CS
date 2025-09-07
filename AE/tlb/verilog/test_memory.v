@@ -132,8 +132,9 @@ begin
     // 2. 发起请求
     mem_req_valid_i = 1'b1;
     mem_addr_i      = addr;
-    @(posedge clk);
-    @(posedge clk);
+    // @(posedge clk);
+    // @(posedge clk);
+    do @(posedge clk); while (mem_req_ready_o !== 1'b0);
     mem_req_valid_i = 1'b0;
     
     // 3. 等待响应
