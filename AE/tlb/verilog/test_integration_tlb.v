@@ -617,6 +617,7 @@ begin
     @(posedge clk);
     ptw_req_ready_i = 1'b1;
     @(posedge clk);
+    @(posedge clk);
     ptw_req_ready_i = 1'b0;
     
     // Send PTW response
@@ -624,6 +625,7 @@ begin
     @(posedge clk);
     ptw_resp_valid_i = 1'b1;
     ptw_pte_i = pte_value;
+    @(posedge clk);
     @(posedge clk);
     ptw_resp_valid_i = 1'b0;
 end
@@ -645,6 +647,7 @@ begin
     vaddr_i = vaddr;
     access_type_i = access_type;
     @(posedge clk);
+    @(posedge clk);
     req_valid_i = 1'b0;
     
     // Wait for response
@@ -653,6 +656,7 @@ begin
     hit_result = hit_o;
     fault_result = fault_o;
     resp_ready_i = 1'b1;
+    @(posedge clk);
     @(posedge clk);
     resp_ready_i = 1'b0;
     @(posedge clk);
@@ -894,16 +898,16 @@ initial begin
     $display("Test Summary:");
     $display("  Tests Passed: %d", test_passed);
     $display("  Tests Failed: %d", test_failed);
-    $display("\nPerformance Statistics:");
+    $display("Performance Statistics:");
     $display("  Total Requests: %d", total_requests);
     $display("  Hits: %d (%.1f%%)", hit_count, hit_count * 100.0 / total_requests);
     $display("  Misses: %d (%.1f%%)", miss_count, miss_count * 100.0 / total_requests);
     $display("  Faults: %d (%.1f%%)", fault_count, fault_count * 100.0 / total_requests);
     
     if (test_failed == 0) begin
-        $display("\nALL TESTS PASSED!");
+        $display("ALL TESTS PASSED!");
     end else begin
-        $display("\nSOME TESTS FAILED!");
+        $display("SOME TESTS FAILED!");
     end
     $display("========================================");
     

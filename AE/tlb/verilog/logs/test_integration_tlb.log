@@ -57,12 +57,10 @@ PASS [           PTW fault propagation]
 Test Summary:
   Tests Passed:           9
   Tests Failed:           0
-
 Performance Statistics:
   Total Requests:           8
   Hits:           3 (37.5%)
   Misses:           5 (62.5%)
   Faults:           2 (25.0%)
-
 ALL TESTS PASSED!
 ========================================

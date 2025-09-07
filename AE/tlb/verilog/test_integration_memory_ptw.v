@@ -442,11 +442,11 @@ initial begin
     $display("  Success Rate: %0.1f%%", (test_passed * 100.0) / (test_passed + test_failed));
     
     if (test_failed == 0) begin
-        $display("  ALL INTEGRATED TESTS PASSED! ");
-        $display("  The Memory and PTW modules work perfectly together!");
+        $display("ALL TESTS PASSED! ");
+        $display("The Memory and PTW modules work perfectly together!");
     end else begin
-        $display("  SOME INTEGRATED TESTS FAILED!");
-        $display("  Please check the module interactions.");
+        $display("SOME TESTS FAILED!");
+        $display("Please check the module interactions.");
     end
     $display("================================================");
     

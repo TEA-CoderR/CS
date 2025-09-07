@@ -400,9 +400,9 @@ initial begin
     $display("  Tests Failed: %d", test_failed);
     
     if (test_failed == 0) begin
-        $display("  ALL TESTS PASSED!");
+        $display("ALL TESTS PASSED!");
     end else begin
-        $display("  SOME TESTS FAILED!");
+        $display("SOME TESTS FAILED!");
     end
     $display("========================================");
     

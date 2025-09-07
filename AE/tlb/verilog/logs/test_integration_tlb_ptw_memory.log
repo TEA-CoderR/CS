@@ -301,6 +301,6 @@ Performance Statistics:
   Page Faults:           6 (16.2%)
   Hit Rate: 75.7%
 ========================================
-🎉 ALL INTEGRATION TESTS PASSED! 🎉
+ALL TESTS PASSED!
 The complete TLB+PTW+Memory pipeline works correctly!
 ========================================

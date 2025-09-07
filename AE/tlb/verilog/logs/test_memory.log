@@ -440,6 +440,6 @@ Time: 2565, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_rea
 Memory Test Summary:
   Tests Passed:          39
   Tests Failed:           0
-  ALL TESTS PASSED!
+ALL TESTS PASSED!
 ========================================
 Time: 2575, State:        IDLE, req_valid=0, req_ready=1, resp_valid=0, resp_ready=0
