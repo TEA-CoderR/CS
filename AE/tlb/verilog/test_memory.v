@@ -218,8 +218,6 @@ reg [31:0] rapid_expected [0:4];
 reg [31:0] test_addresses [0:9];
 reg [31:0] expected_values [0:9];
 initial begin
-    $dumpfile("test_memory.vcd");
-    $dumpvars(0, test_memory);
     // Initialize
     clk = 1'b0;
     test_passed = 0;
@@ -396,9 +394,9 @@ initial begin
     $display("  Tests Failed: %d", test_failed);
     
     if (test_failed == 0) begin
-        $display("ALL TESTS PASSED!");
+        $display("MEMORY:\t\t ALL TESTS PASSED!");
     end else begin
-        $display("SOME TESTS FAILED!");
+        $display("MEMORY:\t\t SOME TESTS FAILED!");
     end
     $display("========================================");
     
@@ -410,6 +408,12 @@ initial begin
     #50000;
     $display("ERROR: Memory test timeout!");
     $finish;
+end
+
+// VCD dump for debugging
+initial begin
+    $dumpfile("test_memory.vcd");
+    $dumpvars(0, test_memory);
 end
 
 // 状态监控

@@ -400,9 +400,9 @@ initial begin
     $display("  Tests Failed: %d", test_failed);
     
     if (test_failed == 0) begin
-        $display("ALL TESTS PASSED!");
+        $display("PTW:\t\t ALL TESTS PASSED!");
     end else begin
-        $display("SOME TESTS FAILED!");
+        $display("PTW:\t\t SOME TESTS FAILED!");
     end
     $display("========================================");
     
@@ -414,6 +414,12 @@ initial begin
     #100000;
     $display("ERROR: PTW test timeout!");
     $finish;
+end
+
+// VCD dump for debugging
+initial begin
+    $dumpfile("test_ptw.vcd");
+    $dumpvars(0, test_ptw);
 end
 
 // Debug monitoring

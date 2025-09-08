@@ -404,10 +404,10 @@ initial begin
     $display("========================================");
     
     if (test_failed == 0) begin
-        $display("ALL TESTS PASSED!");
+        $display("INTEGRATION_TLB_PTW_MEMORY:\t ALL TESTS PASSED!");
         $display("The complete TLB+PTW+Memory pipeline works correctly!");
     end else begin
-        $display("SOME TESTS FAILED!");
+        $display("INTEGRATION_TLB_PTW_MEMORY:\t SOME TESTS FAILED!");
         $display("Please check the integration between modules.");
     end
     $display("========================================");

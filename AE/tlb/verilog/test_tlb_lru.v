@@ -123,9 +123,9 @@ initial begin
     $display("Passed: %d", test_passed);
     $display("Failed: %d", test_failed);
     if (test_failed == 0) begin
-        $display("ALL TESTS PASSED!");
+        $display("TLB_LRU:\t ALL TESTS PASSED!");
     end else begin
-        $display("SOME TESTS FAILED!");
+        $display("TLB_LRU:\t SOME TESTS FAILED!");
     end
     $display("========================================");
     
@@ -137,6 +137,12 @@ initial begin
     #1000;
     $display("ERROR: Test timeout!");
     $finish;
+end
+
+// VCD dump for debugging
+initial begin
+    $dumpfile("test_tlb_lru.vcd");
+    $dumpvars(0, test_tlb_lru);
 end
 
 endmodule

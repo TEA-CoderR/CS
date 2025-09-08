@@ -905,9 +905,9 @@ initial begin
     $display("  Faults: %d (%.1f%%)", fault_count, fault_count * 100.0 / total_requests);
     
     if (test_failed == 0) begin
-        $display("ALL TESTS PASSED!");
+        $display("INTEGRATION_TLB:\t\t ALL TESTS PASSED!");
     end else begin
-        $display("SOME TESTS FAILED!");
+        $display("INTEGRATION_TLB:\t\t SOME TESTS FAILED!");
     end
     $display("========================================");
     
