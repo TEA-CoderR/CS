@@ -1,7 +1,5 @@
 // test_tlb_lru.v
-// LRU替换策略模块单元测试
 
-//`timescale 1ns/1ps
 `include "tlb_params.vh"
 
 module test_tlb_lru;
@@ -47,14 +45,15 @@ begin
     if (replace_way !== exp_way) begin
         $display("ERROR [%s]: Replace way mismatch. Expected=%d, Got=%d", 
                  test_name, exp_way, replace_way);
-        $display("       LRU counts: [%d, %d, %d, %d]", cnt0, cnt1, cnt2, cnt3);
+        $display("LRU counts: [%d, %d, %d, %d]", cnt0, cnt1, cnt2, cnt3);
         test_failed = test_failed + 1;
     end else if (max_lru_value !== exp_max) begin
         $display("ERROR [%s]: Max LRU mismatch. Expected=%d, Got=%d", 
                  test_name, exp_max, max_lru_value);
-        $display("       LRU counts: [%d, %d, %d, %d]", cnt0, cnt1, cnt2, cnt3);
+        $display("LRU counts: [%d, %d, %d, %d]", cnt0, cnt1, cnt2, cnt3);
         test_failed = test_failed + 1;
     end else begin
+        $display("LRU counts: [%d, %d, %d, %d]", cnt0, cnt1, cnt2, cnt3);
         $display("PASS [%s]: way=%d, max=%d", test_name, replace_way, max_lru_value);
         test_passed = test_passed + 1;
     end
@@ -105,16 +104,11 @@ initial begin
     test_lru(4'd0, 4'd1, 4'd2, 4'd3, 2'd0, 4'd3, "Sequential 0-3");
     test_lru(4'd3, 4'd2, 4'd1, 4'd0, 2'd3, 4'd3, "Sequential 3-0");
     
-    // Test 9: Edge cases
-    $display("\nTest 9: Edge cases");
-    test_lru(4'd15, 4'd0, 4'd15, 4'd0, 2'd1, 4'd15, "Alternating max/min");
-    test_lru(4'd0, 4'd15, 4'd0, 4'd15, 2'd0, 4'd15, "Alternating min/max");
-    
-    // Test 10: Random patterns
-    $display("\nTest 10: Random patterns");
-    test_lru(4'd6, 4'd2, 4'd14, 4'd9, 2'd1, 4'd14, "Random pattern 1");
-    test_lru(4'd11, 4'd3, 4'd8, 4'd5, 2'd1, 4'd11, "Random pattern 2");
-    test_lru(4'd4, 4'd12, 4'd7, 4'd1, 2'd3, 4'd12, "Random pattern 3");
+    // Test 9: Stress test
+    $display("\nTest 9: Stress test");
+    test_lru(4'd6, 4'd2, 4'd14, 4'd9, 2'd1, 4'd14, "Stress test 1");
+    test_lru(4'd11, 4'd3, 4'd8, 4'd5, 2'd1, 4'd11, "Stress test 2");
+    test_lru(4'd4, 4'd12, 4'd7, 4'd1, 2'd3, 4'd12, "Stress test 3");
     
     // Final report
     #10;

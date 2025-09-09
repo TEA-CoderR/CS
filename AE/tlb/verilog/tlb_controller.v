@@ -170,7 +170,6 @@
 // endmodule
 
 // tlb_controller.v
-// TLB控制器状态机模块
 
 `include "tlb_params.vh"
 

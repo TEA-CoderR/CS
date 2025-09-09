@@ -1,5 +1,4 @@
 // tlb_params.vh
-// TLB参数定义头文件
 
 `ifndef TLB_PARAMS_VH
 `define TLB_PARAMS_VH

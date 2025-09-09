@@ -1,5 +1,4 @@
 // tlb_lru.v
-// LRU替换策略模块
 
 `include "tlb_params.vh"
 

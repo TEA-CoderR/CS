@@ -1,5 +1,4 @@
 // tlb_storage.v
-// TLB存储阵列模块
 
 `include "tlb_params.vh"
 
@@ -20,7 +19,6 @@ module tlb_storage (
     // output reg [NUM_WAYS-1:0][19:0]           rd_ppn,
     // output reg [NUM_WAYS-1:0][1:0]            rd_perms,
     // output reg [NUM_WAYS-1:0][LRU_BITS-1:0]   rd_lru_count,
-
     
     // Write interface
     input wr_en,
@@ -46,18 +44,11 @@ reg [19:0]          tlb_ppn       [0:NUM_SETS-1][0:NUM_WAYS-1];
 reg [1:0]           tlb_perms     [0:NUM_SETS-1][0:NUM_WAYS-1];
 reg [LRU_BITS-1:0]  tlb_lru_count [0:NUM_SETS-1][0:NUM_WAYS-1];
 
-// reg [NUM_SETS-1:0][NUM_WAYS-1:0]                tlb_valid;
-// reg [NUM_SETS-1:0][NUM_WAYS-1:0][19:0]          tlb_vpn;
-// reg [NUM_SETS-1:0][NUM_WAYS-1:0][19:0]          tlb_ppn;
-// reg [NUM_SETS-1:0][NUM_WAYS-1:0][1:0]           tlb_perms;
-// reg [NUM_SETS-1:0][NUM_WAYS-1:0][LRU_BITS-1:0]  tlb_lru_count;
-
 // reg [NUM_WAYS-1:0]                tlb_valid     [0:NUM_SETS-1];
 // reg [NUM_WAYS-1:0][19:0]          tlb_vpn       [0:NUM_SETS-1];
 // reg [NUM_WAYS-1:0][19:0]          tlb_ppn       [0:NUM_SETS-1];
 // reg [NUM_WAYS-1:0][1:0]           tlb_perms     [0:NUM_SETS-1];
 // reg [NUM_WAYS-1:0][LRU_BITS-1:0]  tlb_lru_count [0:NUM_SETS-1];
-
 
 // Initialize TLB entries
 initial begin
@@ -109,7 +100,7 @@ always @(posedge clk) begin
         end
         
         // LRU update (for hit case)
-        if (lru_update_en && !wr_en) begin
+        if (lru_update_en/* && !wr_en*/) begin
             tlb_lru_count[lru_set_index][lru_way] <= lru_value;
         end
     end

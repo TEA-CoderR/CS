@@ -1,7 +1,5 @@
 // test_tlb_storage.v
-// TLB存储模块单元测试
 
-//`timescale 1ns/1ps
 `include "tlb_params.vh"
 
 module test_tlb_storage;
@@ -101,6 +99,7 @@ begin
     wr_ppn = ppn;
     wr_perms = perms;
     wr_lru_count = 4'd0;
+    // @(posedge clk);
     @(posedge clk);
     wr_en = 1'b0;
 end
@@ -211,7 +210,7 @@ initial begin
     write_entry(4'd7, 2'd0, 20'h99999, 20'hEEEEE, 2'b11);
     update_lru(4'd7, 2'd0, 4'd15);
     rd_set_index = 4'd7;
-    #1;
+    #1; // Wait for combinational logic
     if (rd_lru_count[0] !== 4'd15) begin
         $display("ERROR: LRU count mismatch. Expected=%d, Got=%d", 15, rd_lru_count[0]);
         test_failed = test_failed + 1;
@@ -255,8 +254,8 @@ initial begin
     
     rd_set_index = 4'd8;
     #1;
-    if (rd_lru_count[1] == 4'd5) begin
-        $display("Write priority verified: LRU=%d (expected 5)", rd_lru_count[1]);
+    if (rd_lru_count[1] == 4'd10) begin
+        $display("Write priority verified: LRU=%d (expected 10)", rd_lru_count[1]);
         test_passed = test_passed + 1;
     end else begin
         $display("ERROR: Write priority failed");

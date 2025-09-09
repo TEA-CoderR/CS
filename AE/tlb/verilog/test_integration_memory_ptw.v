@@ -1,8 +1,4 @@
 // test_integrated_memory_ptw.v
-// Memory模块和PTW模块的集成测试
-// 测试完整的页表遍历流程
-
-//`timescale 1ns/1ps
 
 module test_integration_memory_ptw;
 

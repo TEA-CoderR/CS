@@ -1,5 +1,4 @@
 // tlb.v
-// 顶层TLB模块
 
 `include "tlb_params.vh"
 

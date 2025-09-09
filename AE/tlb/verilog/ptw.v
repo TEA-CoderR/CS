@@ -1,5 +1,4 @@
-// ptw.v - 优化的页表遍历器模块
-// 修复了状态机逻辑和SystemVerilog语法问题
+// ptw.v
 
 module ptw (
     input clk,
@@ -27,10 +26,9 @@ module ptw (
 );
 
 // Page table parameters
-// 调整基地址以适配1024字内存 (0-4095字节 = 0x0000-0x0FFF)
 parameter SATP_PPN = 32'h0400; // Page table base address = 0x400 (word index 256)
 
-// State definitions - 使用标准Verilog语法
+// State definitions
 parameter ACCEPT_REQ  = 3'd0;
 parameter READ_LEVEL1 = 3'd1;
 parameter WAIT_LEVEL1 = 3'd2;
@@ -234,22 +232,22 @@ always @(posedge clk) begin
 end
 
 // Debug monitoring
-always @(posedge clk) begin
-    if (ptw_req_valid_i && ptw_req_ready_o) begin
-        $display("[PTW] Request: vaddr=0x%08h, vpn1=%d, vpn0=%d", ptw_vaddr_i, ptw_vaddr_i[31:22], ptw_vaddr_i[21:12]);
-    end
-    if (mem_req_valid_o && mem_req_ready_i) begin
-        $display("[PTW] Memory Request: addr=0x%08h", mem_addr_o);
-    end
-    if (mem_resp_valid_i && mem_resp_ready_o) begin
-        $display("[PTW] Memory Response: data=0x%08h", mem_data_i);
-    end
-    if (ptw_resp_valid_o && ptw_resp_ready_i) begin
-        $display("[PTW] Response: pte=0x%08h", ptw_pte_o);
-    end
-    // if (state != next_state) begin
-    //     $display("[PTW] State change: %d -> %d", state, next_state);
-    // end
-end
+// always @(posedge clk) begin
+//     if (ptw_req_valid_i && ptw_req_ready_o) begin
+//         $display("[PTW] Request: vaddr=0x%08h, vpn1=%d, vpn0=%d", ptw_vaddr_i, ptw_vaddr_i[31:22], ptw_vaddr_i[21:12]);
+//     end
+//     if (mem_req_valid_o && mem_req_ready_i) begin
+//         $display("[PTW] Memory Request: addr=0x%08h", mem_addr_o);
+//     end
+//     if (mem_resp_valid_i && mem_resp_ready_o) begin
+//         $display("[PTW] Memory Response: data=0x%08h", mem_data_i);
+//     end
+//     if (ptw_resp_valid_o && ptw_resp_ready_i) begin
+//         $display("[PTW] Response: pte=0x%08h", ptw_pte_o);
+//     end
+//     // if (state != next_state) begin
+//     //     $display("[PTW] State change: %d -> %d", state, next_state);
+//     // end
+// end
 
 endmodule

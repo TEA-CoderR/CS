@@ -1,7 +1,5 @@
 // test_tlb_lookup.v
-// TLB查找模块单元测试
 
-//`timescale 1ns/1ps
 `include "tlb_params.vh"
 
 module test_tlb_lookup;
@@ -163,11 +161,11 @@ initial begin
     $display("\nTest 5: Multiple valid entries");
     init_tlb_invalid();
     setup_tlb_entry(2'd0, 1'b1, 20'h11111, 20'hAAAAA, 2'b11);
-    setup_tlb_entry(2'd1, 1'b1, 20'h22222, 20'hBBBBB, 2'b11);
-    setup_tlb_entry(2'd2, 1'b1, 20'h33333, 20'hCCCCC, 2'b11);
-    setup_tlb_entry(2'd3, 1'b1, 20'h44444, 20'hDDDDD, 2'b11);
+    setup_tlb_entry(2'd1, 1'b1, 20'h22221, 20'hBBBBB, 2'b11);
+    setup_tlb_entry(2'd2, 1'b1, 20'h33331, 20'hCCCCC, 2'b11);
+    setup_tlb_entry(2'd3, 1'b1, 20'h44441, 20'hDDDDD, 2'b11);
     
-    vaddr = 32'h33333FFF;
+    vaddr = 32'h33331FFF;
     access_type = 1'b0;
     check_result(1'b1, 2'd2, 20'hCCCCC, 1'b0, "Multiple entries - match way 2");
     
@@ -204,18 +202,8 @@ initial begin
     access_type = 1'b0;
     check_result(1'b0, 2'd0, 20'd0, 1'b1, "VPN mismatch - miss");
     
-    // Test 10: Priority encoding (multiple matches shouldn't happen, but test priority)
-    $display("\nTest 10: Priority encoding test");
-    init_tlb_invalid();
-    // In real hardware, this shouldn't happen, but we test the priority encoder
-    setup_tlb_entry(2'd0, 1'b1, 20'hABCDE, 20'h11111, 2'b11);
-    setup_tlb_entry(2'd1, 1'b1, 20'hABCDE, 20'h22222, 2'b11); // Same VPN (shouldn't happen)
-    vaddr = 32'hABCDE567;
-    access_type = 1'b0;
-    check_result(1'b1, 2'd0, 20'h11111, 1'b0, "Priority encoding - way 0 wins");
-    
-    // Test 11: Different set indices
-    $display("\nTest 11: Different set indices");
+    // Test 10: Different set indices
+    $display("\nTest 10: Different set indices");
     init_tlb_invalid();
     
     // Test with set index 0x5

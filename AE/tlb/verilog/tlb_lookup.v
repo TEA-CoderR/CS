@@ -1,5 +1,4 @@
 // tlb_lookup.v
-// TLB查找逻辑模块
 
 `include "tlb_params.vh"
 
