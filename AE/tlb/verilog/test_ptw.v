@@ -126,24 +126,24 @@ task ptw_translate(
 begin
     $display("  [PTW] Starting translation for vaddr=0x%08h", vaddr);
     
-    // 1. Waiting for the PTW interface to be ready
-    while (ptw_req_ready_o !== 1'b1) @(posedge clk);
-    
-    // 2. Send PTW Request
+    // 1. Send PTW Request
     ptw_req_valid_i = 1'b1;
     ptw_vaddr_i = vaddr;
-    // @(posedge clk);
-    // @(posedge clk);
-    do @(posedge clk); while (ptw_req_ready_o !== 1'b0); 
+
+    // 2. Waiting for the PTW interface to be ready
+    do @(posedge clk); while (ptw_req_ready_o !== 1'b1);
+    @(posedge clk);
     ptw_req_valid_i = 1'b0;
     
     // 3. Awaiting Response
-    while (ptw_resp_valid_o !== 1'b1) @(posedge clk);
+    ptw_resp_ready_i = 1'b1;
+    do @(posedge clk); while (ptw_resp_valid_o !== 1'b1);
+    @(posedge clk);
     pte_result = ptw_pte_o;
     
-    ptw_resp_ready_i = 1'b1;
-    @(posedge clk);
-    @(posedge clk);
+    // ptw_resp_ready_i = 1'b1;
+    // @(posedge clk);
+    // @(posedge clk);
     ptw_resp_ready_i = 1'b0;
     @(posedge clk);
     
@@ -211,7 +211,7 @@ initial begin
     
     // Test 3: Invalid page table entries
     $display("\n=== Test 3: Invalid Page Table Entries ===");
-    // VAddr: 0x80000000 -> VPN1=2, VPN0=0 -> Should access L1[2] (invalid)
+    //？？？？？？？？ VAddr: 0x80000000 -> VPN1=2, VPN0=0 -> Should access L1[2] (invalid)
     verify_translation(32'h80000000, 32'h00000000, "Invalid L1 entry");
     
     // VAddr: 0x00003000 -> VPN1=0, VPN0=3 -> Should access L1[0] then L2[3] (invalid)

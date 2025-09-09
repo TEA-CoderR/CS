@@ -56,24 +56,24 @@ task memory_read(
     output [31:0] data_result
 );
 begin
-    // 1. Waiting for the memory interface to be ready
-    while (mem_req_ready_o !== 1'b1) @(mem_req_ready_o);
-
-    // 2. Send Request
+    // 1. Send Request
     mem_req_valid_i = 1'b1;
     mem_addr_i      = addr;
-    // @(posedge clk);
-    // @(posedge clk);
-    do @(posedge clk); while (mem_req_ready_o !== 1'b0);
+
+    // 2. Waiting for the memory interface to be ready
+    do @(posedge clk); while (mem_req_ready_o !== 1'b1);
+    @(posedge clk);
     mem_req_valid_i = 1'b0;
     
     // 3. Awaiting Response
-    while (mem_resp_valid_o !== 1'b1) @(mem_resp_valid_o);
+    mem_resp_ready_i = 1'b1;
+    do @(posedge clk); while (mem_resp_valid_o !== 1'b1);
+    @(posedge clk);
     data_result      = mem_data_o;
     
-    mem_resp_ready_i = 1'b1;
-    @(posedge clk);
-    @(posedge clk);
+    // mem_resp_ready_i = 1'b1;
+    // @(posedge clk);
+    // @(posedge clk);
     mem_resp_ready_i = 1'b0;
     @(posedge clk);
 end

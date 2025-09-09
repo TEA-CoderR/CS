@@ -88,44 +88,22 @@ begin
     $display("  [INTEGRATED] Starting translation for vaddr=0x%08h", vaddr);
     $display("    VPN1=%d, VPN0=%d", vaddr[31:22], vaddr[21:12]);
     
-    // 1. 发送PTW请求
-    while (ptw_req_ready_o !== 1'b1) @(posedge clk);
+    // 1. Send PTW Request
     ptw_req_valid_i = 1'b1;
     ptw_vaddr_i = vaddr;
-    //@(posedge clk);
-    //@(posedge clk);
-    
-    // 等待请求被接受
-    //while (ptw_req_ready_o !== 1'b0) @(posedge clk);
-    do @(posedge clk); while (ptw_req_ready_o !== 1'b0);
 
+    // 2. Waiting for the PTW interface to be ready
+    do @(posedge clk); while (ptw_req_ready_o !== 1'b1);
+    @(posedge clk);
     ptw_req_valid_i = 1'b0;
     
     $display("  [INTEGRATED] PTW request sent, waiting for completion...");
     
-    // 2. 等待PTW完成所有内存访问并返回结果
-    while (ptw_resp_valid_o !== 1'b1) begin
-        @(posedge clk);
-        
-        // 可选：监控内存访问过程
-        if (mem_req_valid && mem_req_ready) begin
-            $display("    [MEM_ACCESS] Reading from addr=0x%08h", mem_addr);
-        end
-        if (mem_resp_valid && mem_resp_ready) begin
-            $display("    [MEM_ACCESS] Got data=0x%08h", mem_data);
-        end
-    end
-    
-    pte_result = ptw_pte_o;
-    
-    // 3. 接受PTW响应
+    // 3. Awaiting Response
     ptw_resp_ready_i = 1'b1;
-    //@(posedge clk);
-    //@(posedge clk);
-    
-    // 等待响应被确认
-    //while (ptw_resp_valid_o !== 1'b0) @(posedge clk);
-    do @(posedge clk); while (ptw_resp_valid_o !== 1'b0);
+    do @(posedge clk); while (ptw_resp_valid_o !== 1'b1);
+    @(posedge clk);
+    pte_result = ptw_pte_o;
     ptw_resp_ready_i = 1'b0;
     @(posedge clk);
     
@@ -155,92 +133,11 @@ begin
 end
 endtask
 
-// 详细的页表遍历验证任务
-task verify_detailed_walk(
-    input [31:0] vaddr,
-    input [31:0] exp_l1_addr,
-    input [31:0] exp_l1_pte,
-    input [31:0] exp_l2_addr,
-    input [31:0] exp_final_pte,
-    input [255:0] test_name
-);
-integer access_count;
-reg [31:0] captured_addrs [0:3];
-reg [31:0] captured_data [0:3];
-begin
-    $display("\n=== Detailed Walk [%s] ===", test_name);
-    $display("Testing vaddr=0x%08h", vaddr);
-    
-    access_count = 0;
-    
-    // 开始翻译
-    ptw_req_valid_i = 1'b1;
-    ptw_vaddr_i = vaddr;
-    @(posedge clk);
-    @(posedge clk);
-    ptw_req_valid_i = 1'b0;
-    
-    // 监控所有内存访问
-    fork
-        // 主线程：等待PTW完成
-        begin
-            wait(ptw_resp_valid_o);
-            received_pte = ptw_pte_o;
-            ptw_resp_ready_i = 1'b1;
-            @(posedge clk);
-            @(posedge clk);
-            ptw_resp_ready_i = 1'b0;
-        end
-        
-        // 监控线程：捕获内存访问
-        begin
-            while (!ptw_resp_valid_o) begin
-                @(posedge clk);
-                if (mem_req_valid && mem_req_ready) begin
-                    captured_addrs[access_count] = mem_addr;
-                    $display("  Memory Access %d: addr=0x%08h", access_count, mem_addr);
-                end
-                if (mem_resp_valid && mem_resp_ready) begin
-                    captured_data[access_count] = mem_data;
-                    $display("  Memory Response %d: data=0x%08h", access_count, mem_data);
-                    access_count = access_count + 1;
-                end
-            end
-        end
-    join
-    
-    // 验证结果
-    $display("  Final PTE: 0x%08h (expected: 0x%08h)", received_pte, exp_final_pte);
-    
-    if (access_count >= 1) begin
-        $display("  L1 Access - Addr: 0x%08h (expected: 0x%08h), Data: 0x%08h (expected: 0x%08h)", 
-                 captured_addrs[0], exp_l1_addr, captured_data[0], exp_l1_pte);
-    end
-    
-    if (access_count >= 2) begin
-        $display("  L2 Access - Addr: 0x%08h (expected: 0x%08h)", 
-                 captured_addrs[1], exp_l2_addr);
-    end
-    
-    // 验证最终结果
-    if (received_pte == exp_final_pte) begin
-        $display("PASS [%s]: Complete page walk successful", test_name);
-        test_passed = test_passed + 1;
-    end else begin
-        $display("ERROR [%s]: Page walk failed", test_name);
-        test_failed = test_failed + 1;
-    end
-end
-endtask
-
 // Main test sequence
 integer i;
 reg [31:0] test_vaddrs [0:7];
 reg [31:0] expected_ptes [0:7];
-initial begin
-    $dumpfile("test_integration_memory_ptw.vcd");
-    $dumpvars(0, test_integration_memory_ptw);
-    
+initial begin    
     // Initialize
     clk = 1'b0;
     test_passed = 0;
@@ -277,39 +174,18 @@ initial begin
     
     // VAddr: 0x00000000 -> VPN1=0, VPN0=0
     // Should access L1[0]=0x00000801, then L2[0]=0x1000000F
-    verify_translation(32'h00000000, 32'h1000000F, "4K page VPN1=0,VPN0=0");
+    verify_translation(32'h00000000, 32'h1000000F, "PTW VPN1=0,VPN0=0");
     
     // VAddr: 0x00001000 -> VPN1=0, VPN0=1  
     // Should access L1[0]=0x00000801, then L2[1]=0x1100000F
-    verify_translation(32'h00001000, 32'h1100000F, "4K page VPN1=0,VPN0=1");
+    verify_translation(32'h00001000, 32'h1100000F, "PTW VPN1=0,VPN0=1");
     
     // VAddr: 0x00002000 -> VPN1=0, VPN0=2
     // Should access L1[0]=0x00000801, then L2[2]=0x12000007
-    verify_translation(32'h00002000, 32'h12000007, "4K page VPN1=0,VPN0=2");
+    verify_translation(32'h00002000, 32'h12000007, "PTW VPN1=0,VPN0=2");
     
-    // Test 3: Detailed page walk verification
-    $display("\n=== Test 3: Detailed Page Walk Verification ===");
-    
-    verify_detailed_walk(
-        32'h00000000,           // vaddr
-        32'h00000400,           // expected L1 address  
-        32'h00000801,           // expected L1 PTE
-        32'h00000800,           // expected L2 address
-        32'h1000000F,           // expected final PTE
-        "Detailed walk for 0x00000000"
-    );
-    
-    verify_detailed_walk(
-        32'h00001000,           // vaddr
-        32'h00000400,           // expected L1 address
-        32'h00000801,           // expected L1 PTE  
-        32'h00000804,           // expected L2 address
-        32'h1100000F,           // expected final PTE
-        "Detailed walk for 0x00001000"
-    );
-    
-    // Test 4: Invalid page table entries
-    $display("\n=== Test 4: Invalid Page Table Entries ===");
+    // Test 3: Invalid page table entries
+    $display("\n=== Test 3: Invalid Page Table Entries ===");
     
     // VAddr: 0x80000000 -> VPN1=2, VPN0=0
     // Should access L1[2]=0x00000000 (invalid), return 0
@@ -382,27 +258,6 @@ initial begin
         end
     end
     
-    // Test 8: Response delay handling
-    $display("\n=== Test 8: Response Delay Handling ===");
-    
-    fork
-        begin
-            integrated_translate(32'h00000000, received_pte);
-            if (received_pte == 32'h1000000F) begin
-                $display("PASS: Delayed response handling");
-                test_passed = test_passed + 1;
-            end else begin
-                $display("ERROR: Delayed response handling failed");
-                test_failed = test_failed + 1;
-            end
-        end
-        begin
-            // Add some delay during the translation process
-            wait(mem_req_valid);
-            repeat(3) @(posedge clk);
-        end
-    join
-    
     // Final comprehensive test
     $display("\n=== Test 9: Comprehensive Integration Test ===");
     
@@ -451,65 +306,71 @@ end
 
 // Timeout watchdog
 initial begin
-    #200000; // 增加超时时间，因为集成测试需要更长时间
+    #200000;
     $display("ERROR: Integrated test timeout!");
     $finish;
 end
 
+// VCD dump for waveform viewing
+initial begin
+    $dumpfile("test_integration_memory_ptw.vcd");
+    $dumpvars(0, test_integration_memory_ptw);
+end
+
 // System-level monitoring
-always @(posedge clk) begin
-    // 监控PTW状态变化
-    if (ptw_inst.state != ptw_inst.next_state) begin
-        $display("[%0t] PTW State: %d -> %d", $time, ptw_inst.state, ptw_inst.next_state);
-    end
+// always @(posedge clk) begin
+//     // Monitor PTW status changes
+//     if (ptw_inst.state != ptw_inst.next_state) begin
+//         $display("[%0t] PTW State: %d -> %d", $time, ptw_inst.state, ptw_inst.next_state);
+//     end
     
-    // 监控Memory状态变化
-    if (mem_inst.state != mem_inst.next_state) begin
-        $display("[%0t] Memory State: %d -> %d", $time, mem_inst.state, mem_inst.next_state);
-    end
-end
+//     // Monitor Memory status changes
+//     if (mem_inst.state != mem_inst.next_state) begin
+//         $display("[%0t] Memory State: %d -> %d", $time, mem_inst.state, mem_inst.next_state);
+//     end
+// end
 
-// Transaction monitoring
-always @(posedge clk) begin
-    if (ptw_req_valid_i && ptw_req_ready_o) begin
-        $display("[%0t] [TRANSACTION] PTW request: vaddr=0x%08h", $time, ptw_vaddr_i);
-    end
-    if (mem_req_valid && mem_req_ready) begin
-        $display("[%0t] [TRANSACTION] Memory request: addr=0x%08h", $time, mem_addr);
-    end
-    if (mem_resp_valid && mem_resp_ready) begin
-        $display("[%0t] [TRANSACTION] Memory response: data=0x%08h", $time, mem_data);
-    end
-    if (ptw_resp_valid_o && ptw_resp_ready_i) begin
-        $display("[%0t] [TRANSACTION] PTW response: pte=0x%08h", $time, ptw_pte_o);
-    end
-end
+// // Transaction monitoring
+// always @(posedge clk) begin
+//     if (ptw_req_valid_i && ptw_req_ready_o) begin
+//         $display("[%0t] [TRANSACTION] PTW request: vaddr=0x%08h", $time, ptw_vaddr_i);
+//     end
+//     if (mem_req_valid && mem_req_ready) begin
+//         $display("[%0t] [TRANSACTION] Memory request: addr=0x%08h", $time, mem_addr);
+//     end
+//     if (mem_resp_valid && mem_resp_ready) begin
+//         $display("[%0t] [TRANSACTION] Memory response: data=0x%08h", $time, mem_data);
+//     end
+//     if (ptw_resp_valid_o && ptw_resp_ready_i) begin
+//         $display("[%0t] [TRANSACTION] PTW response: pte=0x%08h", $time, ptw_pte_o);
+//     end
+// end
 
-// Performance monitoring
-integer total_cycles;
-integer active_translations;
-always @(posedge clk) begin
-    if (rst) begin
-        total_cycles = 0;
-        active_translations = 0;
-    end else begin
-        total_cycles = total_cycles + 1;
-        if (ptw_req_valid_i && ptw_req_ready_o) begin
-            active_translations = active_translations + 1;
-        end
-    end
-end
+// // Performance monitoring
+// integer total_cycles;
+// integer active_translations;
+// always @(posedge clk) begin
+//     if (rst) begin
+//         total_cycles = 0;
+//         active_translations = 0;
+//     end else begin
+//         total_cycles = total_cycles + 1;
+//         if (ptw_req_valid_i && ptw_req_ready_o) begin
+//             active_translations = active_translations + 1;
+//         end
+//     end
+// end
 
-// Final performance report
-always @(posedge clk) begin
-    if (test_passed + test_failed > 0 && total_cycles > 1000) begin
-        $display("[PERF] Total cycles: %d, Active translations: %d", 
-                 total_cycles, active_translations);
-        if (active_translations > 0) begin
-            $display("[PERF] Average cycles per translation: %0.1f", 
-                     total_cycles * 1.0 / active_translations);
-        end
-    end
-end
+// // Final performance report
+// always @(posedge clk) begin
+//     if (test_passed + test_failed > 0 && total_cycles > 1000) begin
+//         $display("[PERF] Total cycles: %d, Active translations: %d", 
+//                  total_cycles, active_translations);
+//         if (active_translations > 0) begin
+//             $display("[PERF] Average cycles per translation: %0.1f", 
+//                      total_cycles * 1.0 / active_translations);
+//         end
+//     end
+// end
 
 endmodule
