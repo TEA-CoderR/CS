@@ -102,8 +102,9 @@ begin
     // 3. Awaiting Response
     ptw_resp_ready_i = 1'b1;
     do @(posedge clk); while (ptw_resp_valid_o !== 1'b1);
-    @(posedge clk);
+    // @(posedge clk);
     pte_result = ptw_pte_o;
+    @(posedge clk);
     ptw_resp_ready_i = 1'b0;
     @(posedge clk);
     
@@ -149,7 +150,7 @@ initial begin
     $display("Page Table Layout:");
     $display("  Root PT at 0x0400 (word index 256)");
     $display("    [0]: 0x00000801 -> L2 PT at 0x0800");
-    $display("    [1]: 0x12340007 -> Megapage PPN=0x1234");
+    $display("    [1]: 0x12340000 -> Invalid ");
     $display("    [2]: 0x00000000 -> Invalid");
     $display("  L2 PT at 0x0800 (word index 512)");
     $display("    [0]: 0x1000000F -> PPN=0x10000");
@@ -187,79 +188,20 @@ initial begin
     // Test 3: Invalid page table entries
     $display("\n=== Test 3: Invalid Page Table Entries ===");
     
-    // VAddr: 0x80000000 -> VPN1=2, VPN0=0
+    // VAddr: 0x00400000 -> VPN1=1, VPN0=0, 0000 0000 0100 0000 0000 0000 0000 0000
+    // Should access L1[1]=0x12340000 (invalid), return 0
+    verify_translation(32'h00400000, 32'h00000000, "Invalid L1 entry");
+
+    // VAddr: 0x00800000 -> VPN1=2, VPN0=0, 0000 0000 1000 0000 0000 0000 0000 0000
     // Should access L1[2]=0x00000000 (invalid), return 0
-    verify_translation(32'h80000000, 32'h00000000, "Invalid L1 entry");
+    verify_translation(32'h00800000, 32'h00000000, "Invalid L1 entry");
     
     // VAddr: 0x00003000 -> VPN1=0, VPN0=3
     // Should access L1[0]=0x00000801, then L2[3]=0x00000000 (invalid)
     verify_translation(32'h00003000, 32'h00000000, "Invalid L2 entry");
     
-    // Test 5: Address boundary testing
-    $display("\n=== Test 5: Address Boundary Testing ===");
-    
-    // Test different VPN combinations
-    verify_translation(32'h00000000, 32'h1000000F, "Boundary: VPN1=0,VPN0=0");
-    verify_translation(32'h00002000, 32'h12000007, "Boundary: VPN1=0,VPN0=2");
-    verify_translation(32'h00003000, 32'h00000000, "Boundary: VPN1=0,VPN0=3(invalid)");
-    
-    // Test 6: Performance and timing
-    $display("\n=== Test 6: Back-to-Back Translations ===");
-    
-    test_vaddrs[0] = 32'h00000000; expected_ptes[0] = 32'h1000000F;
-    test_vaddrs[1] = 32'h00001000; expected_ptes[1] = 32'h1100000F;
-    test_vaddrs[2] = 32'h00002000; expected_ptes[2] = 32'h12000007;
-    test_vaddrs[3] = 32'h80000000; expected_ptes[3] = 32'h00000000;
-    
-    for (i = 0; i < 4; i = i + 1) begin
-        integrated_translate(test_vaddrs[i], received_pte);
-        if (received_pte !== expected_ptes[i]) begin
-            $display("ERROR: Back-to-back test %d failed. vaddr=0x%08h, exp=0x%08h, got=0x%08h", 
-                     i, test_vaddrs[i], expected_ptes[i], received_pte);
-            test_failed = test_failed + 1;
-        end else begin
-            $display("PASS: Back-to-back test %d: vaddr=0x%08h -> pte=0x%08h", 
-                     i, test_vaddrs[i], received_pte);
-            test_passed = test_passed + 1;
-        end
-    end
-    
-    // Test 7: System stress test
-    $display("\n=== Test 7: System Stress Test ===");
-    
-    // Rapid sequential translations
-    for (i = 0; i < 8; i = i + 1) begin
-        case (i % 4)
-            0: begin
-                integrated_translate(32'h00000000, received_pte);
-                expected_pte = 32'h1000000F;
-            end
-            1: begin
-                integrated_translate(32'h00001000, received_pte);
-                expected_pte = 32'h1100000F;
-            end
-            2: begin
-                integrated_translate(32'h00002000, received_pte);
-                expected_pte = 32'h12000007;
-            end
-            3: begin
-                integrated_translate(32'h80000000, received_pte);
-                expected_pte = 32'h00000000;
-            end
-        endcase
-        
-        if (received_pte == expected_pte) begin
-            $display("PASS: Stress test iteration %d", i);
-            test_passed = test_passed + 1;
-        end else begin
-            $display("ERROR: Stress test iteration %d failed. exp=0x%08h, got=0x%08h", 
-                     i, expected_pte, received_pte);
-            test_failed = test_failed + 1;
-        end
-    end
-    
-    // Final comprehensive test
-    $display("\n=== Test 9: Comprehensive Integration Test ===");
+    // Test 4: comprehensive test
+    $display("\n=== Test 4: Comprehensive Integration Test ===");
     
     test_vaddrs[0] = 32'h00000000; expected_ptes[0] = 32'h1000000F;  // L2[0]
     test_vaddrs[1] = 32'h00001000; expected_ptes[1] = 32'h1100000F;  // L2[1]

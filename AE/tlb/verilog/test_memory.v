@@ -68,12 +68,12 @@ begin
     // 3. Awaiting Response
     mem_resp_ready_i = 1'b1;
     do @(posedge clk); while (mem_resp_valid_o !== 1'b1);
-    @(posedge clk);
+    // @(posedge clk);
     data_result      = mem_data_o;
     
     // mem_resp_ready_i = 1'b1;
     // @(posedge clk);
-    // @(posedge clk);
+    @(posedge clk);
     mem_resp_ready_i = 1'b0;
     @(posedge clk);
 end
@@ -135,7 +135,7 @@ initial begin
     
     // Root page table at 0x400 (word index 256)
     verify_read(32'h00000400, 32'h00000801, "Root PT entry 0");
-    verify_read(32'h00000404, 32'h12340007, "Root PT entry 1");
+    verify_read(32'h00000404, 32'h12340000, "Root PT entry 1");
     verify_read(32'h00000408, 32'h00000000, "Root PT entry 2 (invalid)");
     
     // Level 2 page table at 0x800 (word index 512)
@@ -154,7 +154,7 @@ initial begin
     
     test_addresses[0] = 32'h00000000; expected_values[0] = 32'h00000000;
     test_addresses[1] = 32'h00000400; expected_values[1] = 32'h00000801;
-    test_addresses[2] = 32'h00000404; expected_values[2] = 32'h12340007;
+    test_addresses[2] = 32'h00000404; expected_values[2] = 32'h12340000;
     test_addresses[3] = 32'h00000408; expected_values[3] = 32'h00000000;
     test_addresses[4] = 32'h00000800; expected_values[4] = 32'h1000000F;
     test_addresses[5] = 32'h00000804; expected_values[5] = 32'h1100000F;

@@ -132,16 +132,23 @@ initial begin
         mem[i] = 32'h00000000;
     end
     
-    // Root PT at 0x400 (word_index = 0x400>>2 = 256)        
-    mem[256 + 0] = 32'h00000801; // VPN1[31:22]=0: L2 PT at 0x800, Valid
-    mem[256 + 1] = 32'h12340007; // VPN1[31:22]=1: Megapage PPN=0x1234, V|W|R
-    mem[256 + 2] = 32'h00000000; // VPN1[31:22]=2: Invalid entry
+    // Root PT at 0x400 (word_index = 0x400>>2 = 256)
+    mem[256 + 0] = 32'h00000801; // VPN[31:22]=0: L2 PT at 0x800, Valid
+    mem[256 + 1] = 32'h12340000; // VPN[31:22]=1: Invalid entry (V == 0)
+    mem[256 + 2] = 32'h00000000; // VPN[31:22]=2: Invalid entry
     
     // L2 PT at 0x800 (word index = 0x800>>2 = 512)  
-    mem[512 + 0] = 32'h1000000F; // VPN0[21:12]=0: PPN=0x10000, V|W|R
-    mem[512 + 1] = 32'h1100000F; // VPN0[21:12]=1: PPN=0x11000, V|W|R  
-    mem[512 + 2] = 32'h12000007; // VPN0[21:12]=2: PPN=0x12000, V|W|R
-    mem[512 + 3] = 32'h00000000; // VPN0[21:12]=3: Invalid entry
+    mem[512 + 0] = 32'h1000000F; // VPN[21:12]=0: PPN=0x10000, V|W|R
+    mem[512 + 1] = 32'h1100000F; // VPN[21:12]=1: PPN=0x11000, V|W|R  
+    mem[512 + 2] = 32'h12000007; // VPN[21:12]=2: PPN=0x12000, V|W|R
+    mem[512 + 3] = 32'h00000000; // VPN[21:12]=3: Invalid entry
+
+    // To test the TLB replacement strategy (Insert in set 1)
+    mem[512 + 17] = 32'h1234500F; // VPN[21:12]=0x11=17: PPN=0x12345, V|W|R
+    mem[512 + 33] = 32'h2234500F; // VPN[21:12]=0x21=33: PPN=0x22345, V|W|R  
+    mem[512 + 49] = 32'h3234500F; // VPN[21:12]=0x31=49: PPN=0x32345, V|W|R
+    mem[512 + 65] = 32'h4234500F; // VPN[21:12]=0x41=65: PPN=0x42345, V|W|R
+    mem[512 + 81] = 32'h5234500F; // VPN[21:12]=0x51=81: PPN=0x52345, V|W|R
     
     $display("Memory initialized with %d words", MEM_SIZE);
     $display("Page table structure (1024-word memory):");

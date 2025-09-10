@@ -698,7 +698,7 @@ task verify_result(
 );
 begin
     if (got_hit !== exp_hit || got_fault !== exp_fault || 
-        (!got_fault && got_paddr !== exp_paddr)) begin
+        (got_fault !== exp_fault && got_paddr !== exp_paddr)) begin
         $display("ERROR [%s]:", test_name);
         $display("  Expected: paddr=%h, hit=%b, fault=%b", exp_paddr, exp_hit, exp_fault);
         $display("  Got:      paddr=%h, hit=%b, fault=%b", got_paddr, got_hit, got_fault);

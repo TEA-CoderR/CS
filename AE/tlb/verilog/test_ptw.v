@@ -63,15 +63,15 @@ initial begin
     end
     
     // Root PT at 0x400 (word_index = 0x400>>2 = 256)
-    sim_mem[256 + 0] = 32'h00000801; // VPN1[31:22]=0: L2 PT at 0x800, Valid
-    sim_mem[256 + 1] = 32'h12340007; // VPN1[31:22]=1: Megapage PPN=0x1234, V|W|R
-    sim_mem[256 + 2] = 32'h00000000; // VPN1[31:22]=2: Invalid entry
+    sim_mem[256 + 0] = 32'h00000801; // VPN[31:22]=0: L2 PT at 0x800, Valid
+    sim_mem[256 + 1] = 32'h12340000; // VPN[31:22]=1: Invalid entry
+    sim_mem[256 + 2] = 32'h00000000; // VPN[31:22]=2: Invalid entry
     
     // L2 PT at 0x800 (word index = 0x800>>2 = 512)  
-    sim_mem[512 + 0] = 32'h1000000F; // VPN0[21:12]=0: PPN=0x10000, V|W|R
-    sim_mem[512 + 1] = 32'h1100000F; // VPN0[21:12]=1: PPN=0x11000, V|W|R  
-    sim_mem[512 + 2] = 32'h12000007; // VPN0[21:12]=2: PPN=0x12000, V|W|R
-    sim_mem[512 + 3] = 32'h00000000; // VPN0[21:12]=3: Invalid entry
+    sim_mem[512 + 0] = 32'h1000000F; // VPN[21:12]=0: PPN=0x10000, V|W|R
+    sim_mem[512 + 1] = 32'h1100000F; // VPN[21:12]=1: PPN=0x11000, V|W|R  
+    sim_mem[512 + 2] = 32'h12000007; // VPN[21:12]=2: PPN=0x12000, V|W|R
+    sim_mem[512 + 3] = 32'h00000000; // VPN[21:12]=3: Invalid entry
 end
 
 // Memory response simulation
@@ -138,12 +138,12 @@ begin
     // 3. Awaiting Response
     ptw_resp_ready_i = 1'b1;
     do @(posedge clk); while (ptw_resp_valid_o !== 1'b1);
-    @(posedge clk);
+    // @(posedge clk);
     pte_result = ptw_pte_o;
     
     // ptw_resp_ready_i = 1'b1;
     // @(posedge clk);
-    // @(posedge clk);
+    @(posedge clk);
     ptw_resp_ready_i = 1'b0;
     @(posedge clk);
     
@@ -211,8 +211,11 @@ initial begin
     
     // Test 3: Invalid page table entries
     $display("\n=== Test 3: Invalid Page Table Entries ===");
-    //？？？？？？？？ VAddr: 0x80000000 -> VPN1=2, VPN0=0 -> Should access L1[2] (invalid)
-    verify_translation(32'h80000000, 32'h00000000, "Invalid L1 entry");
+    // VAddr: 0x00400000 -> VPN1=1, VPN0=0 -> Should access L1[1] (invalid)
+    verify_translation(32'h00400000, 32'h00000000, "Invalid L1 entry");
+
+    // VAddr: 0x00800000 -> VPN1=2, VPN0=0 -> Should access L1[2] (invalid)
+    verify_translation(32'h00800000, 32'h00000000, "Invalid L1 entry");
     
     // VAddr: 0x00003000 -> VPN1=0, VPN0=3 -> Should access L1[0] then L2[3] (invalid)
     verify_translation(32'h00003000, 32'h00000000, "Invalid L2 entry");

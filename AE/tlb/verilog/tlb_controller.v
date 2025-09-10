@@ -217,7 +217,7 @@ always @(*) begin
     
     case (state)
         ACCEPT_REQ: begin
-            if (req_valid_i) begin
+            if (req_valid_i && req_ready_o) begin
                 next_state = LOOKUP;
             end
         end
@@ -233,13 +233,13 @@ always @(*) begin
         end
         
         PTW_REQ: begin
-            if (ptw_req_ready_i) begin
+            if (ptw_req_ready_i && ptw_req_valid_o) begin
                 next_state = PTW_PENDING;
             end
         end
         
         PTW_PENDING: begin
-            if (ptw_resp_valid_i) begin
+            if (ptw_resp_valid_i && ptw_resp_ready_o) begin
                 next_state = UPDATE;
             end
         end
@@ -249,7 +249,7 @@ always @(*) begin
         end
         
         RESPOND: begin
-            if (resp_ready_i) begin
+            if (resp_ready_i && resp_valid_o) begin
                 next_state = ACCEPT_REQ;
             end
         end
@@ -274,7 +274,7 @@ always @(posedge clk) begin
 
         case (state)
         ACCEPT_REQ: begin
-            if (req_valid_i) begin
+            if (req_valid_i && req_ready_o) begin
                 req_ready_o <= 1'b0;
                 lookup_en <= 1'b1;
             end else begin
@@ -296,7 +296,7 @@ always @(posedge clk) begin
         
         PTW_REQ: begin
             //ptw_req_valid_o <= 1'b1;
-            if (ptw_req_ready_i) begin
+            if (ptw_req_ready_i && ptw_req_valid_o) begin
                 ptw_req_valid_o  <= 1'b0;
                 ptw_resp_ready_o <= 1'b1;
             end
@@ -304,7 +304,7 @@ always @(posedge clk) begin
         
         PTW_PENDING: begin
             //ptw_resp_ready_o <= 1'b1;
-            if (ptw_resp_valid_i) begin
+            if (ptw_resp_valid_i && ptw_resp_ready_o) begin
                 ptw_resp_ready_o <= 1'b0;
             end
         end
@@ -316,7 +316,7 @@ always @(posedge clk) begin
         
         RESPOND: begin
             //resp_valid_o <= 1'b1;
-            if (resp_ready_i) begin
+            if (resp_ready_i && resp_valid_o) begin
                 resp_valid_o <= 1'b0;
                 req_ready_o  <= 1'b1;
             end

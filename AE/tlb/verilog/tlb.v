@@ -155,7 +155,7 @@ always @(posedge clk) begin
         
         case (state)
             ACCEPT_REQ: begin
-                if (req_valid_i) begin
+                if (req_valid_i && req_ready_o) begin
                     vaddr_reg       <= vaddr_i;
                     access_type_reg <= access_type_i;
                 end
@@ -176,7 +176,7 @@ always @(posedge clk) begin
             end
             
             PTW_PENDING: begin
-                if (ptw_resp_valid_i) begin
+                if (ptw_resp_valid_i && ptw_resp_ready_o) begin
                     pte_reg <= ptw_pte_i;
                 end
             end
@@ -205,7 +205,7 @@ always @(posedge clk) begin
             end
             
             RESPOND: begin
-                if (resp_ready_i) begin
+                if (resp_ready_i && resp_valid_o) begin
                     hit_o   <= 1'b0;
                     fault_o <= 1'b0;
                 end

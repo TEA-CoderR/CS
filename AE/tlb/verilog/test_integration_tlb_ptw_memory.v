@@ -1,8 +1,6 @@
 // test_integration_tlb_ptw_memory.v
-// TLB + PTW + Memory 完整集成测试
-// 测试完整的虚拟地址到物理地址转换流水线
+// TLB + PTW + Memory
 
-//`timescale 1ns/1ps
 `include "tlb_params.vh"
 
 module test_integration_tlb_ptw_memory;
@@ -138,25 +136,27 @@ begin
     $display("  [TRANS] Starting translation: vaddr=0x%08h, type=%s", 
              vaddr, access_type ? "WRITE" : "READ");
     
-    // Send request to TLB
-    wait(cpu_req_ready);
+    // 1. Send Request to TLB
     cpu_req_valid = 1'b1;
     cpu_vaddr = vaddr;
     cpu_access_type = access_type;
+
+    // 2. Waiting for the TLB interface to be ready
+    do @(posedge clk); while (cpu_req_ready !== 1'b1);
     @(posedge clk);
-    @(posedge clk);
+    // @(posedge clk);
     cpu_req_valid = 1'b0;
     
-    // Wait for response
-    wait(cpu_resp_valid);
+    // 3. Awaiting Response
+    cpu_resp_ready = 1'b1;
+    do @(posedge clk); while (cpu_resp_valid !== 1'b1);
+    //@(posedge clk);
     paddr_result = cpu_paddr;
     hit_result = cpu_hit;
     fault_result = cpu_fault;
-    
-    cpu_resp_ready = 1'b1;
-    @(posedge clk);
     @(posedge clk);
     cpu_resp_ready = 1'b0;
+    @(posedge clk);
     
     $display("  [TRANS] Complete: paddr=0x%08h, hit=%b, fault=%b", 
              paddr_result, hit_result, fault_result);
@@ -183,7 +183,7 @@ begin
     complete_translation(vaddr, access_type, task_paddr_result, task_hit_result, task_fault_result);
     
     if (task_hit_result == expected_hit && task_fault_result == expected_fault && 
-        (!task_fault_result && task_paddr_result == expected_paddr)) begin
+        (task_fault_result == expected_fault && task_paddr_result == expected_paddr)) begin
         $display("PASS [%s]", test_name);
         test_passed = test_passed + 1;
     end else begin
@@ -194,22 +194,6 @@ begin
     end
 end
 endtask
-
-// Monitor pipeline activity
-always @(posedge clk) begin
-    if (tlb_ptw_req_valid && tlb_ptw_req_ready) begin
-        $display("  [PIPELINE] TLB->PTW request: vaddr=0x%08h", tlb_ptw_vaddr);
-    end
-    if (ptw_mem_req_valid && ptw_mem_req_ready) begin
-        $display("  [PIPELINE] PTW->Memory request: addr=0x%08h", ptw_mem_addr);
-    end
-    if (ptw_mem_resp_valid && ptw_mem_resp_ready) begin
-        $display("  [PIPELINE] Memory->PTW response: data=0x%08h", ptw_mem_data);
-    end
-    if (tlb_ptw_resp_valid && tlb_ptw_resp_ready) begin
-        $display("  [PIPELINE] PTW->TLB response: pte=0x%08h", tlb_ptw_pte);
-    end
-end
 
 // Main test sequence
 integer i;
@@ -231,11 +215,11 @@ initial begin
     $display("Memory Layout (from memory.v initialization):");
     $display("  Root PT at 0x0400 (word index 256):");
     $display("    [0] = 0x00000801 -> L2 PT at 0x0800");
-    $display("    [1] = 0x12340007 -> Megapage PPN=0x1234, R+W");
+    $display("    [1] = 0x12340000 -> Invalid");
     $display("    [2] = 0x00000000 -> Invalid");
     $display("  L2 PT at 0x0800 (word index 512):");
-    $display("    [0] = 0x1000000F -> PPN=0x10000, R+W+X");
-    $display("    [1] = 0x1100000F -> PPN=0x11000, R+W+X");
+    $display("    [0] = 0x1000000F -> PPN=0x10000, R+W");
+    $display("    [1] = 0x1100000F -> PPN=0x11000, R+W");
     $display("    [2] = 0x12000007 -> PPN=0x12000, R+W");
     $display("    [3] = 0x00000000 -> Invalid");
     $display("========================================");
@@ -260,15 +244,15 @@ initial begin
     // Test 3: TLB Hit (same page)
     $display("\n=== Test 3: TLB Hit ===");
     // Same page as previous, should hit in TLB
-    verify_translation(32'h00000123, 1'b0, 32'h10000123, 1'b1, 1'b0, "TLB hit - same page");
+    verify_translation(32'h00000000, 1'b0, 32'h10000000, 1'b1, 1'b0, "TLB hit - same page");
     
-    // Test 4: Different page in same L2 table
+    // Test 4: Different page in same L2 table (miss and page walk)
     $display("\n=== Test 4: Different Page (Same L2 Table) ===");
     // VAddr: 0x00001000 -> VPN1=0, VPN0=1
     // Expected: L1[0]=0x00000801 -> L2[1]=0x1100000F -> PPN=0x11000
     verify_translation(32'h00001000, 1'b0, 32'h11000000, 1'b0, 1'b0, "Different page - same L2");
     
-    // Test 5: Hit on newly cached page
+    // Test 5: TLB Hit (same page with different offset)
     verify_translation(32'h00001ABC, 1'b0, 32'h11000ABC, 1'b1, 1'b0, "Hit on second page");
     
     // Test 6: Third page in same L2 table
@@ -277,49 +261,41 @@ initial begin
     // Expected: L1[0]=0x00000801 -> L2[2]=0x12000007 -> PPN=0x12000
     verify_translation(32'h00002000, 1'b0, 32'h12000000, 1'b0, 1'b0, "Third page translation");
     
-    // Test 7: Write access to read+write page
+    // Test 7: Write access to read+write page (Permission check)
     $display("\n=== Test 7: Write Access Tests ===");
-    verify_translation(32'h00002456, 1'b1, 32'h12000456, 1'b1, 1'b0, "Write to R+W page (hit)");
+    // VAddr: 0x00002456 -> VPN1=0, VPN0=2
+    // Expected: L1[0]=0x00000801 -> L2[2]=0x12000007 -> PPN=0x12000
+    verify_translation(32'h00002456, 1'b1, 32'h12000456, 1'b1, 1'b0, "Write to R+W page (hit)");    
     
-    // Test 8: Write access to read+write+execute page
-    verify_translation(32'h00000789, 1'b1, 32'h10000789, 1'b1, 1'b0, "Write to R+W+X page (hit)");
+    // VAddr: 0x00000789 -> VPN1=0, VPN0=0
+    // Expected: L1[0]=0x00000801 -> L2[0]=0x1000000F -> PPN=0x10000
+    verify_translation(32'h00000789, 1'b1, 32'h10000789, 1'b1, 1'b0, "Write to R+W page (hit)");
     
-    // Test 9: Invalid page table entry
-    // $display("\n=== Test 9: Invalid Page Table Entries ===");
-    // // VAddr: 0x00003000 -> VPN1=0, VPN0=3
-    // // Expected: L1[0]=0x00000801 -> L2[3]=0x00000000 (invalid)
-    // verify_translation(32'h00003000, 1'b0, 32'h00000000, 1'b0, 1'b1, "Invalid L2 entry");
+    // Test 8: Invalid page table entry
+    $display("\n=== Test 8: Invalid Page Table Entries ===");
+    // VAddr: 0x00003000 -> VPN1=0, VPN0=3
+    // Expected: L1[0]=0x00000801 -> L2[3]=0x00000000 (invalid)
+    verify_translation(32'h00003000, 1'b0, 32'h00000000, 1'b0, 1'b1, "Invalid L2 entry");
     
-    // // VAddr: 0x80000000 -> VPN1=2, VPN0=0
-    // // Expected: L1[2]=0x00000000 (invalid)
-    // verify_translation(32'h80000000, 1'b0, 32'h00000000, 1'b0, 1'b1, "Invalid L1 entry");
+    // VAddr: 0x00400000 -> VPN1=1, VPN0=0
+    // Expected: L1[1]=0x12340000 (invalid)
+    verify_translation(32'h00400000, 1'b0, 32'h00000000, 1'b0, 1'b1, "Invalid L1 entry");
+
+    // VAddr: 0x00800000 -> VPN1=2, VPN0=0
+    // Expected: L1[2]=0x00000000 (invalid)
+    verify_translation(32'h00800000, 1'b0, 32'h00000000, 1'b0, 1'b1, "Invalid L1 entry");
     
-    // Test 10: TLB capacity and replacement
-    $display("\n=== Test 10: TLB Capacity Test ===");
-    
-    // Fill TLB with different pages  
-    // Test pages that map to different virtual addresses but same physical pages
-    for (i = 0; i < 8; i = i + 1) begin
-        case (i % 3)
-            0: begin
-                test_vaddr = {20'h00000 + i[7:0], 12'h000};
-                expected_paddr = {20'h10000, 12'h000};
-            end
-            1: begin
-                test_vaddr = {20'h00000 + i[7:0], 12'h000} + 32'h1000;
-                expected_paddr = {20'h11000, 12'h000};
-            end
-            2: begin
-                test_vaddr = {20'h00000 + i[7:0], 12'h000} + 32'h2000;
-                expected_paddr = {20'h12000, 12'h000};
-            end
-        endcase
-        
-        complete_translation(test_vaddr, 1'b0, task_paddr_result, task_hit_result, task_fault_result);
-        $display("  Capacity test %d: vaddr=0x%08h -> paddr=0x%08h, hit=%b", 
-                 i, test_vaddr, task_paddr_result, task_hit_result);
-    end
-    
+    // Test 9: TLB replacement strategy
+    $display("\n=== Test 9: TLB Capacity Test ===");    
+    // Fill TLB Set 1 with different vpn
+    // VAddr: 0x00011000 -> VPN1=0, VPN0=0x11=17
+    // Expected: L1[0]=0x00000801 -> L2[17]=0x1234500F -> PPN=0x12345
+    verify_translation(32'h00011000, 1'b0, 32'h12345000, 1'b0, 1'b1, "TLB miss - page walk");
+
+    // VAddr: 0x00021000 -> VPN1=0, VPN0=0x21=33
+    // Expected: L1[0]=0x00000801 -> L2[17]=0x1234500F -> PPN=0x12345
+    verify_translation(32'h00011000, 1'b0, 32'h12345000, 1'b0, 1'b1, "TLB miss - page walk");
+
     // Test 11: Performance - back-to-back requests
     $display("\n=== Test 11: Performance Test ===");
     
@@ -428,56 +404,72 @@ initial begin
     $dumpvars(0, test_integration_tlb_ptw_memory);
 end
 
-// Performance monitoring
-integer cycle_count;
-integer active_translations;
-integer tlb_lookups;
-integer ptw_requests;
-integer memory_accesses;
+// // Monitor pipeline activity
+// always @(posedge clk) begin
+//     if (tlb_ptw_req_valid && tlb_ptw_req_ready) begin
+//         $display("  [PIPELINE] TLB->PTW request: vaddr=0x%08h", tlb_ptw_vaddr);
+//     end
+//     if (ptw_mem_req_valid && ptw_mem_req_ready) begin
+//         $display("  [PIPELINE] PTW->Memory request: addr=0x%08h", ptw_mem_addr);
+//     end
+//     if (ptw_mem_resp_valid && ptw_mem_resp_ready) begin
+//         $display("  [PIPELINE] Memory->PTW response: data=0x%08h", ptw_mem_data);
+//     end
+//     if (tlb_ptw_resp_valid && tlb_ptw_resp_ready) begin
+//         $display("  [PIPELINE] PTW->TLB response: pte=0x%08h", tlb_ptw_pte);
+//     end
+// end
 
-always @(posedge clk) begin
-    if (rst) begin
-        cycle_count = 0;
-        active_translations = 0;
-        tlb_lookups = 0;
-        ptw_requests = 0;
-        memory_accesses = 0;
-    end else begin
-        cycle_count = cycle_count + 1;
-        
-        if (cpu_req_valid && cpu_req_ready) begin
-            tlb_lookups = tlb_lookups + 1;
-        end
-        
-        if (tlb_ptw_req_valid && tlb_ptw_req_ready) begin
-            ptw_requests = ptw_requests + 1;
-        end
-        
-        if (ptw_mem_req_valid && ptw_mem_req_ready) begin
-            memory_accesses = memory_accesses + 1;
-        end
-        
-        if (cpu_resp_valid && cpu_resp_ready) begin
-            active_translations = active_translations + 1;
-        end
-    end
-end
+// // Performance monitoring
+// integer cycle_count;
+// integer active_translations;
+// integer tlb_lookups;
+// integer ptw_requests;
+// integer memory_accesses;
 
-// Final performance summary
-always @(posedge clk) begin
-    if (test_passed + test_failed > 50 && cycle_count > 10000) begin
-        $display("\n[PERFORMANCE] Detailed Statistics:");
-        $display("  Total Cycles: %d", cycle_count);
-        $display("  TLB Lookups: %d", tlb_lookups);  
-        $display("  PTW Requests: %d", ptw_requests);
-        $display("  Memory Accesses: %d", memory_accesses);
-        $display("  Completed Translations: %d", active_translations);
+// always @(posedge clk) begin
+//     if (rst) begin
+//         cycle_count = 0;
+//         active_translations = 0;
+//         tlb_lookups = 0;
+//         ptw_requests = 0;
+//         memory_accesses = 0;
+//     end else begin
+//         cycle_count = cycle_count + 1;
         
-        if (active_translations > 0) begin
-            $display("  Average Cycles/Translation: %0.1f", cycle_count * 1.0 / active_translations);
-            $display("  Miss Penalty (PTW Rate): %0.1f%%", (ptw_requests * 100.0) / tlb_lookups);
-        end
-    end
-end
+//         if (cpu_req_valid && cpu_req_ready) begin
+//             tlb_lookups = tlb_lookups + 1;
+//         end
+        
+//         if (tlb_ptw_req_valid && tlb_ptw_req_ready) begin
+//             ptw_requests = ptw_requests + 1;
+//         end
+        
+//         if (ptw_mem_req_valid && ptw_mem_req_ready) begin
+//             memory_accesses = memory_accesses + 1;
+//         end
+        
+//         if (cpu_resp_valid && cpu_resp_ready) begin
+//             active_translations = active_translations + 1;
+//         end
+//     end
+// end
+
+// // Final performance summary
+// always @(posedge clk) begin
+//     if (test_passed + test_failed > 50 && cycle_count > 10000) begin
+//         $display("\n[PERFORMANCE] Detailed Statistics:");
+//         $display("  Total Cycles: %d", cycle_count);
+//         $display("  TLB Lookups: %d", tlb_lookups);  
+//         $display("  PTW Requests: %d", ptw_requests);
+//         $display("  Memory Accesses: %d", memory_accesses);
+//         $display("  Completed Translations: %d", active_translations);
+        
+//         if (active_translations > 0) begin
+//             $display("  Average Cycles/Translation: %0.1f", cycle_count * 1.0 / active_translations);
+//             $display("  Miss Penalty (PTW Rate): %0.1f%%", (ptw_requests * 100.0) / tlb_lookups);
+//         end
+//     end
+// end
 
 endmodule
