@@ -315,10 +315,11 @@ always @(posedge clk) begin
         end
         
         RESPOND: begin
+            //lru_update_en <= 1'b0;
             //resp_valid_o <= 1'b1;
             if (resp_ready_i && resp_valid_o) begin
-                resp_valid_o <= 1'b0;
-                req_ready_o  <= 1'b1;
+                resp_valid_o  <= 1'b0;
+                req_ready_o   <= 1'b1;
             end
         end
         

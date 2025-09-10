@@ -97,11 +97,9 @@ always @(posedge clk) begin
             tlb_ppn[wr_set_index][wr_way]       <= wr_ppn;
             tlb_perms[wr_set_index][wr_way]     <= wr_perms;
             tlb_lru_count[wr_set_index][wr_way] <= wr_lru_count;
-        end
-        
-        // LRU update (for hit case)
-        if (lru_update_en/* && !wr_en*/) begin
-            tlb_lru_count[lru_set_index][lru_way] <= lru_value;
+        end else if (lru_update_en/* && !wr_en*/) begin     // LRU update (for hit case)
+            // tlb_lru_count[lru_set_index][lru_way] <= lru_value;
+            tlb_lru_count[lru_set_index][lru_way] <= tlb_lru_count[lru_set_index][lru_way] + 1'b1;
         end
     end
 end

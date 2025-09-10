@@ -286,15 +286,39 @@ initial begin
     verify_translation(32'h00800000, 1'b0, 32'h00000000, 1'b0, 1'b1, "Invalid L1 entry");
     
     // Test 9: TLB replacement strategy
-    $display("\n=== Test 9: TLB Capacity Test ===");    
-    // Fill TLB Set 1 with different vpn
-    // VAddr: 0x00011000 -> VPN1=0, VPN0=0x11=17
-    // Expected: L1[0]=0x00000801 -> L2[17]=0x1234500F -> PPN=0x12345
-    verify_translation(32'h00011000, 1'b0, 32'h12345000, 1'b0, 1'b1, "TLB miss - page walk");
+    $display("\n=== Test 9: TLB replacement strategy ===");    
+    // Fill TLB Set 1 with 4 different vpn
+    // VAddr: 0x00018000 -> VPN1=0, VPN0=0x18=24
+    // Expected: L1[0]=0x00000801 -> L2[24]=0x1234500F -> PPN=0x12345
+    verify_translation(32'h00018000, 1'b0, 32'h12345000, 1'b0, 1'b0, "TLB miss - page walk");
 
-    // VAddr: 0x00021000 -> VPN1=0, VPN0=0x21=33
-    // Expected: L1[0]=0x00000801 -> L2[17]=0x1234500F -> PPN=0x12345
-    verify_translation(32'h00011000, 1'b0, 32'h12345000, 1'b0, 1'b1, "TLB miss - page walk");
+    // VAddr: 0x00028000 -> VPN1=0, VPN0=0x28=40
+    // Expected: L1[0]=0x00000801 -> L2[40]=0x2234500F -> PPN=0x22345
+    verify_translation(32'h00028000, 1'b0, 32'h22345000, 1'b0, 1'b0, "TLB miss - page walk");
+
+    // VAddr: 0x00038000 -> VPN1=0, VPN0=0x38=56
+    // Expected: L1[0]=0x00000801 -> L2[56]=0x3234500F -> PPN=0x32345
+    verify_translation(32'h00038000, 1'b0, 32'h32345000, 1'b0, 1'b0, "TLB miss - page walk");
+
+    // VAddr: 0x00048000 -> VPN1=0, VPN0=0x48=72
+    // Expected: L1[0]=0x00000801 -> L2[72]=0x3234500F -> PPN=0x42345
+    verify_translation(32'h00048000, 1'b0, 32'h42345000, 1'b0, 1'b0, "TLB miss - page walk");
+
+    // Read three addresses and increment their LRU values
+    verify_translation(32'h00018000, 1'b0, 32'h12345000, 1'b1, 1'b0, "TLB hit - update lru_count");
+    verify_translation(32'h00028000, 1'b0, 32'h22345000, 1'b1, 1'b0, "TLB hit - update lru_count");
+    verify_translation(32'h00048000, 1'b0, 32'h42345000, 1'b1, 1'b0, "TLB hit - update lru_count");
+
+    // Read a new address, The VPN 0x00038 should be replaced
+    // VAddr: 0x00058000 -> VPN1=0, VPN0=0x58=88
+    // Expected: L1[0]=0x00000801 -> L2[88]=0x5234500F -> PPN=0x52345
+    verify_translation(32'h00058000, 1'b0, 32'h52345000, 1'b0, 1'b0, "TLB miss - page walk");
+
+    // Verify that the vpn has been correctly replaced (VPN 0x00031)
+    verify_translation(32'h00018000, 1'b0, 32'h12345000, 1'b1, 1'b0, "TLB hit - update lru_count");
+    verify_translation(32'h00028000, 1'b0, 32'h22345000, 1'b1, 1'b0, "TLB hit - update lru_count");
+    verify_translation(32'h00038000, 1'b0, 32'h32345000, 1'b0, 1'b0, "TLB miss - page walk");
+    verify_translation(32'h00048000, 1'b0, 32'h42345000, 1'b1, 1'b0, "TLB hit - update lru_count");
 
     // Test 11: Performance - back-to-back requests
     $display("\n=== Test 11: Performance Test ===");

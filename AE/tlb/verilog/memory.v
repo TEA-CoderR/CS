@@ -143,12 +143,12 @@ initial begin
     mem[512 + 2] = 32'h12000007; // VPN[21:12]=2: PPN=0x12000, V|W|R
     mem[512 + 3] = 32'h00000000; // VPN[21:12]=3: Invalid entry
 
-    // To test the TLB replacement strategy (Insert in set 1)
-    mem[512 + 17] = 32'h1234500F; // VPN[21:12]=0x11=17: PPN=0x12345, V|W|R
-    mem[512 + 33] = 32'h2234500F; // VPN[21:12]=0x21=33: PPN=0x22345, V|W|R  
-    mem[512 + 49] = 32'h3234500F; // VPN[21:12]=0x31=49: PPN=0x32345, V|W|R
-    mem[512 + 65] = 32'h4234500F; // VPN[21:12]=0x41=65: PPN=0x42345, V|W|R
-    mem[512 + 81] = 32'h5234500F; // VPN[21:12]=0x51=81: PPN=0x52345, V|W|R
+    // To test the TLB replacement strategy (Insert in set 8)
+    mem[512 + 24] = 32'h1234500F; // VPN[21:12]=0x18=24: PPN=0x12345, V|W|R
+    mem[512 + 40] = 32'h2234500F; // VPN[21:12]=0x28=40: PPN=0x22345, V|W|R  
+    mem[512 + 56] = 32'h3234500F; // VPN[21:12]=0x38=56: PPN=0x32345, V|W|R
+    mem[512 + 72] = 32'h4234500F; // VPN[21:12]=0x48=72: PPN=0x42345, V|W|R
+    mem[512 + 88] = 32'h5234500F; // VPN[21:12]=0x58=88: PPN=0x52345, V|W|R
     
     $display("Memory initialized with %d words", MEM_SIZE);
     $display("Page table structure (1024-word memory):");
