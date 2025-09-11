@@ -200,7 +200,7 @@ initial begin
     // Should access L1[0]=0x00000801, then L2[3]=0x00000000 (invalid)
     verify_translation(32'h00003000, 32'h00000000, "Invalid L2 entry");
     
-    // Test 4: comprehensive test
+    // Test 4: Comprehensive test
     $display("\n=== Test 4: Comprehensive Integration Test ===");
     
     test_vaddrs[0] = 32'h00000000; expected_ptes[0] = 32'h1000000F;  // L2[0]
@@ -236,10 +236,10 @@ initial begin
     
     if (test_failed == 0) begin
         $display("INTEGRATION_MEMORY_PTW:\t\t ALL TESTS PASSED! ");
-        $display("The Memory and PTW modules work perfectly together!");
+        $display("The complete Memory+PTW integration works correctly!");
     end else begin
         $display("INTEGRATION_MEMORY_PTW:\t\t SOME TESTS FAILED!");
-        $display("Please check the module interactions.");
+        $display("Please check the integration between modules.");
     end
     $display("================================================");
     

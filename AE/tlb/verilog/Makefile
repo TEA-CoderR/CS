@@ -122,7 +122,6 @@ clean:
 
 # Help
 help:
-	@echo "TLB Testbench Makefile"
 	@echo "======================"
 	@echo "Targets:"
 	@echo "  all            	- Run all tests (default)"
@@ -143,5 +142,6 @@ help:
 	@echo "  make test_all"
 	@echo "  make test_integration_tlb_ptw_memory"
 	@echo "  make clean"
+	@echo "======================"
 
 .PHONY: all test_all unit_tests test_storage test_lookup test_lru test_ptw test_memory test_integration_memory_ptw test_integration_tlb test_integration_tlb_ptw_memory clean help

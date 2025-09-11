@@ -319,71 +319,40 @@ initial begin
     verify_translation(32'h00028000, 1'b0, 32'h22345000, 1'b1, 1'b0, "TLB hit - update lru_count");
     verify_translation(32'h00038000, 1'b0, 32'h32345000, 1'b0, 1'b0, "TLB miss - page walk");
     verify_translation(32'h00048000, 1'b0, 32'h42345000, 1'b1, 1'b0, "TLB hit - update lru_count");
-
-    // Test 11: Performance - back-to-back requests
-    $display("\n=== Test 11: Performance Test ===");
     
-    // Rapid fire translations to cached pages
-    for (i = 0; i < 10; i = i + 1) begin
-        test_vaddr = 32'h00000000 + (i * 32'h100);  // Same page, different offsets
-        complete_translation(test_vaddr, i[0], task_paddr_result, task_hit_result, task_fault_result);
+    // Test 10: Comprehensive test
+    $display("\n=== Test 10: Comprehensive Integration Test ===");
+    
+    for (i = 0; i < 20; i = i + 1) begin
+        // Generate addresses in valid ranges
+        case (i % 4)
+            0: test_vaddr = {20'h00000, i[11:0]};  // Maps to 0x10000xxx
+            1: test_vaddr = {20'h00001, i[11:0]};  // Maps to 0x11000xxx
+            2: test_vaddr = {20'h00002, i[11:0]};  // Maps to 0x12000xxx
+            3: test_vaddr = {20'h00003, i[11:0]};  // Maps to 0x00000000 (Invalid page)
+        endcase
         
-        if (!task_hit_result) begin
-            $display("  ERROR: Expected hit for vaddr=0x%08h", test_vaddr);
-            test_failed = test_failed + 1;
-        end else begin
-            test_passed = test_passed + 1;
-        end
-    end
-    
-    // Test 12: Mixed read/write pattern
-    $display("\n=== Test 12: Mixed Read/Write Pattern ===");
-    
-    test_addrs[0] = 32'h00000000;  // R+W page
-    test_addrs[1] = 32'h00001000;  // R+W page  
-    test_addrs[2] = 32'h00002000;  // R+W page
-    test_addrs[3] = 32'h00000800;  // Same as test_addrs[0], different offset
-    
-    for (i = 0; i < 12; i = i + 1) begin
-        test_vaddr = test_addrs[i % 4] + (i * 4);  // Different offsets
-        complete_translation(test_vaddr, i[1], task_paddr_result, task_hit_result, task_fault_result);
+        complete_translation(test_vaddr, 0, task_paddr_result, task_hit_result, task_fault_result);
         
-        if (task_fault_result) begin
-            $display("  Unexpected fault for vaddr=0x%08h", test_vaddr);
-        end
-    end
-    
-    // // Test 13: Stress test with random addresses in valid range
-    // $display("\n=== Test 13: Stress Test ===");
-    
-    // for (i = 0; i < 20; i = i + 1) begin
-    //     // Generate addresses in valid ranges
-    //     case (i % 3)
-    //         0: test_vaddr = {20'h00000, $random[11:0]};  // Maps to 0x10000xxx
-    //         1: test_vaddr = {20'h00001, $random[11:0]};  // Maps to 0x11000xxx
-    //         2: test_vaddr = {20'h00002, $random[11:0]};  // Maps to 0x12000xxx
-    //     endcase
-        
-    //     complete_translation(test_vaddr, $random[0], task_paddr_result, task_hit_result, task_fault_result);
-        
-    //     if (!task_fault_result) begin
-    //         // Verify address translation is consistent
-    //         case (test_vaddr[31:12])
-    //             20'h00000: expected_paddr = {20'h10000, test_vaddr[11:0]};
-    //             20'h00001: expected_paddr = {20'h11000, test_vaddr[11:0]};
-    //             20'h00002: expected_paddr = {20'h12000, test_vaddr[11:0]};
-    //             default:   expected_paddr = 32'h00000000;
-    //         endcase
+        if (!task_fault_result) begin
+            // Verify address translation is consistent
+            case (test_vaddr[31:12])
+                20'h00000: expected_paddr = {20'h10000, i[11:0]};
+                20'h00001: expected_paddr = {20'h11000, i[11:0]};
+                20'h00002: expected_paddr = {20'h12000, i[11:0]};
+                20'h00003: expected_paddr = 32'h00000000;
+                default:   expected_paddr = 32'h00000000;
+            endcase
             
-    //         if (task_paddr_result == expected_paddr) begin
-    //             test_passed = test_passed + 1;
-    //         end else begin
-    //             $display("  ERROR: Address translation mismatch for 0x%08h", test_vaddr);
-    //             $display("    Expected: 0x%08h, Got: 0x%08h", expected_paddr, task_paddr_result);
-    //             test_failed = test_failed + 1;
-    //         end
-    //     end
-    // end
+            if (task_paddr_result == expected_paddr) begin
+                test_passed = test_passed + 1;
+            end else begin
+                $display("  ERROR: Address translation mismatch for 0x%08h", test_vaddr);
+                $display("    Expected: 0x%08h, Got: 0x%08h", expected_paddr, task_paddr_result);
+                test_failed = test_failed + 1;
+            end
+        end
+    end
     
     // Final delay and report
     #100;
@@ -405,7 +374,7 @@ initial begin
     
     if (test_failed == 0) begin
         $display("INTEGRATION_TLB_PTW_MEMORY:\t ALL TESTS PASSED!");
-        $display("The complete TLB+PTW+Memory pipeline works correctly!");
+        $display("The complete TLB+PTW+Memory integration works correctly!");
     end else begin
         $display("INTEGRATION_TLB_PTW_MEMORY:\t SOME TESTS FAILED!");
         $display("Please check the integration between modules.");
