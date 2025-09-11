@@ -108,7 +108,7 @@ tlb_storage storage (
     .wr_ppn(wr_ppn),
     .wr_perms(wr_perms),
     .wr_lru_count(wr_lru_count),
-    .lru_update_en(lru_update_en && hit && !perm_fault),
+    .lru_update_en(state == LOOKUP && hit && !perm_fault),
     .lru_set_index(set_index),
     .lru_way(hit_way),
     .lru_value(rd_lru_count[hit_way] + 1'b1)
@@ -152,7 +152,7 @@ always @(posedge clk) begin
         wr_en           <= 1'b0;
     end else begin
         wr_en <= 1'b0;  // Default
-        
+        // $display("----------test_tlb------------%d", state == LOOKUP && hit && !perm_fault); 
         case (state)
             ACCEPT_REQ: begin
                 if (req_valid_i && req_ready_o) begin
@@ -162,7 +162,9 @@ always @(posedge clk) begin
             end
             
             LOOKUP: begin
+                $display("  vaddr=0x%08h", vaddr_reg);
                 if (hit && !perm_fault) begin
+                    $display("hit");  
                     paddr_o <= {hit_ppn, page_offset};
                     hit_o   <= 1'b1;
                     fault_o <= 1'b0;
@@ -171,6 +173,7 @@ always @(posedge clk) begin
                     hit_o   <= 1'b1;
                     fault_o <= 1'b1;
                 end else begin
+                    $display("miss");  
                     ptw_vaddr_o <= vaddr_reg;
                 end
             end
@@ -188,6 +191,7 @@ always @(posedge clk) begin
                     paddr_o <= 32'd0;
                     fault_o <= 1'b1;
                 end else begin
+                    $display("update");    
                     // Update TLB entry
                     wr_en        <= 1'b1;
                     wr_way       <= replace_way;
@@ -195,7 +199,7 @@ always @(posedge clk) begin
                     wr_vpn       <= vpn;
                     wr_ppn       <= pte_reg[31:12];
                     wr_perms     <= pte_reg[1:0];
-                    wr_lru_count <= max_lru_value;
+                    wr_lru_count <= max_lru_value == 0 ? 1 : max_lru_value;
                     
                     // Output physical address
                     paddr_o <= {pte_reg[31:12], page_offset};
@@ -208,6 +212,7 @@ always @(posedge clk) begin
                 if (resp_ready_i && resp_valid_o) begin
                     hit_o   <= 1'b0;
                     fault_o <= 1'b0;
+                    wr_en   <= 1'b0;
                 end
             end
         endcase

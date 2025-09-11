@@ -267,16 +267,16 @@ always @(posedge clk) begin
         resp_valid_o      <= 1'b0;
         ptw_req_valid_o   <= 1'b0;
         ptw_resp_ready_o  <= 1'b0;
-        lookup_en         <= 1'b0;
-        update_en         <= 1'b0;
-        lru_update_en     <= 1'b0;
+        // lookup_en         <= 1'b0;
+        // update_en         <= 1'b0;
+        // lru_update_en     <= 1'b0;
     end else begin
-
         case (state)
         ACCEPT_REQ: begin
             if (req_valid_i && req_ready_o) begin
                 req_ready_o <= 1'b0;
-                lookup_en <= 1'b1;
+                // lookup_en <= 1'b1;
+                // lru_update_en <= 1'b1;
             end else begin
                 req_ready_o <= 1'b1;
             end
@@ -286,7 +286,7 @@ always @(posedge clk) begin
             // lookup_en <= 1'b1;
             if (hit && !perm_fault) begin
                 resp_valid_o  <= 1'b1;
-                lru_update_en <= 1'b1;
+                // lru_update_en <= 1'b0;
             end else if (hit && perm_fault) begin
                 resp_valid_o  <= 1'b1;
             end else begin
@@ -310,7 +310,7 @@ always @(posedge clk) begin
         end
         
         UPDATE: begin
-            update_en    <= 1'b1;
+            // update_en    <= 1'b1;
             resp_valid_o <= 1'b1;
         end
         

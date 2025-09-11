@@ -339,8 +339,8 @@ initial begin
     // Test 12: Mixed read/write pattern
     $display("\n=== Test 12: Mixed Read/Write Pattern ===");
     
-    test_addrs[0] = 32'h00000000;  // R+W+X page
-    test_addrs[1] = 32'h00001000;  // R+W+X page  
+    test_addrs[0] = 32'h00000000;  // R+W page
+    test_addrs[1] = 32'h00001000;  // R+W page  
     test_addrs[2] = 32'h00002000;  // R+W page
     test_addrs[3] = 32'h00000800;  // Same as test_addrs[0], different offset
     
@@ -353,7 +353,7 @@ initial begin
         end
     end
     
-    // Test 13: Stress test with random addresses in valid range
+    // // Test 13: Stress test with random addresses in valid range
     // $display("\n=== Test 13: Stress Test ===");
     
     // for (i = 0; i < 20; i = i + 1) begin

@@ -90,14 +90,19 @@ always @(posedge clk) begin
             end
         end
     end else begin
-        // Write operation
+        // Write operation (for miss case)
         if (wr_en) begin
+            $display("++++++++++Write in+++++++++++++%d,%d", wr_set_index, wr_way);
             tlb_valid[wr_set_index][wr_way]     <= wr_valid;
             tlb_vpn[wr_set_index][wr_way]       <= wr_vpn;
             tlb_ppn[wr_set_index][wr_way]       <= wr_ppn;
             tlb_perms[wr_set_index][wr_way]     <= wr_perms;
             tlb_lru_count[wr_set_index][wr_way] <= wr_lru_count;
-        end else if (lru_update_en/* && !wr_en*/) begin     // LRU update (for hit case)
+        end 
+
+        // LRU update (for hit case)
+        if (lru_update_en/* && !wr_en*/) begin 
+            $display("++++++++++LRU update+++++++++++++%d", lru_update_en);    
             // tlb_lru_count[lru_set_index][lru_way] <= lru_value;
             tlb_lru_count[lru_set_index][lru_way] <= tlb_lru_count[lru_set_index][lru_way] + 1'b1;
         end

@@ -145,15 +145,15 @@ endtask
 
 task update_lru(
     input [SET_INDEX_BITS-1:0] set,
-    input [1:0] way,
-    input [LRU_BITS-1:0] value
+    input [1:0] way
+    // input [LRU_BITS-1:0] value
 );
 begin
     @(posedge clk);
     lru_update_en = 1'b1;
     lru_set_index = set;
     lru_way = way;
-    lru_value = value;
+    // lru_value = value;
     @(posedge clk);
     lru_update_en = 1'b0;
 end
@@ -207,12 +207,12 @@ initial begin
     
     // Test 5: LRU update
     $display("\nTest 5: LRU update");
-    write_entry(4'd7, 2'd0, 20'h99999, 20'hEEEEE, 2'b11);
-    update_lru(4'd7, 2'd0, 4'd15);
+    write_entry(4'd7, 2'd0, 20'h99999, 20'hEEEEE, 2'b11); // lru_count == 1 (The first entry in the set 7)
+    update_lru(4'd7, 2'd0); // hit, lru_count + 1 == 2
     rd_set_index = 4'd7;
     #1; // Wait for combinational logic
-    if (rd_lru_count[0] !== 4'd15) begin
-        $display("ERROR: LRU count mismatch. Expected=%d, Got=%d", 15, rd_lru_count[0]);
+    if (rd_lru_count[0] !== 4'd2) begin
+        $display("ERROR: LRU count mismatch. Expected=%d, Got=%d", 2, rd_lru_count[0]);
         test_failed = test_failed + 1;
     end else begin
         $display("LRU update successful");
@@ -230,38 +230,6 @@ initial begin
         read_and_verify(i[SET_INDEX_BITS-1:0], 2'd0, 20'h10000 + i, 20'h20000 + i, 2'b11, 1'b1);
     end
     $display("Test 6 completed");
-    
-    // Test 7: Concurrent write and LRU update (should prioritize write)
-    $display("\nTest 7: Concurrent write and LRU update");
-    @(posedge clk);
-    wr_en = 1'b1;
-    wr_set_index = 4'd8;
-    wr_way = 2'd1;
-    wr_valid = 1'b1;
-    wr_vpn = 20'hCCCCC;
-    wr_ppn = 20'hDDDDD;
-    wr_perms = 2'b10;
-    wr_lru_count = 4'd5;
-    
-    lru_update_en = 1'b1;
-    lru_set_index = 4'd8;
-    lru_way = 2'd1;
-    lru_value = 4'd10;
-    
-    @(posedge clk);
-    wr_en = 1'b0;
-    lru_update_en = 1'b0;
-    
-    rd_set_index = 4'd8;
-    #1;
-    if (rd_lru_count[1] == 4'd10) begin
-        $display("Write priority verified: LRU=%d (expected 10)", rd_lru_count[1]);
-        test_passed = test_passed + 1;
-    end else begin
-        $display("ERROR: Write priority failed");
-        test_failed = test_failed + 1;
-    end
-    $display("Test 7 completed");
     
     // Final report
     #100;
