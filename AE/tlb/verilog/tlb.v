@@ -37,7 +37,7 @@ reg [31:0] pte_reg;
 
 // Control signals
 wire [2:0] state, next_state;
-wire lookup_en, update_en, lru_update_en;
+wire update_en, lru_update_en;
 
 // Storage interface signals
 wire [SET_INDEX_BITS-1:0] set_index;
@@ -83,7 +83,6 @@ tlb_controller controller (
     .ptw_resp_ready_o(ptw_resp_ready_o),
     .hit(hit),
     .perm_fault(perm_fault),
-    .lookup_en(lookup_en),
     .update_en(update_en),
     .lru_update_en(lru_update_en),
     .state(state),
@@ -110,8 +109,7 @@ tlb_storage storage (
     .wr_lru_count(wr_lru_count),
     .lru_update_en(state == LOOKUP && hit && !perm_fault),
     .lru_set_index(set_index),
-    .lru_way(hit_way),
-    .lru_value(rd_lru_count[hit_way] + 1'b1)
+    .lru_way(hit_way)
 );
 
 // Instantiate lookup logic
@@ -185,13 +183,23 @@ always @(posedge clk) begin
             end
             
             UPDATE: begin
-                // Permission check
-                if ((access_type_reg == 1'b0 && !pte_reg[0]) ||
-                    (access_type_reg == 1'b1 && !pte_reg[1])) begin
+                // pte_reg[0]: valid bit (1 = valid, 0 = invalid)
+                // pte_reg[1]: read permission (1 = readable, 0 = not readable)
+                // pte_reg[2]: write permission (1 = writable, 0 = not writable)
+                if (pte_reg[0] == 1'b0) begin
+                    // V == 0 => miss => hit = 0 && fault = 1
                     paddr_o <= 32'd0;
+                    hit_o <= 1'b0;
                     fault_o <= 1'b1;
-                end else begin
-                    $display("update");    
+                end else if ((access_type_reg == 1'b0 && !pte_reg[1]) ||
+                    (access_type_reg == 1'b1 && !pte_reg[2])) begin 
+                    // V == 1 => hit but perm fault => hit = 1 && fault = 1
+                    paddr_o <= 32'd0;
+                    hit_o <= 1'b1;
+                    fault_o <= 1'b1;
+                end else begin 
+                    $display("update");
+                    // Hit => hit = 1 && fault = 0    
                     // Update TLB entry
                     wr_en        <= 1'b1;
                     wr_way       <= replace_way;
@@ -203,9 +211,9 @@ always @(posedge clk) begin
                     
                     // Output physical address
                     paddr_o <= {pte_reg[31:12], page_offset};
+                    hit_o <= 1'b1;
                     fault_o <= 1'b0;
                 end
-                hit_o <= 1'b0;
             end
             
             RESPOND: begin

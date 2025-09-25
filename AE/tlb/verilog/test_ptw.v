@@ -68,9 +68,9 @@ initial begin
     sim_mem[256 + 2] = 32'h00000000; // VPN[31:22]=2: Invalid entry
     
     // L2 PT at 0x800 (word index = 0x800>>2 = 512)  
-    sim_mem[512 + 0] = 32'h1000000F; // VPN[21:12]=0: PPN=0x10000, V|W|R
-    sim_mem[512 + 1] = 32'h1100000F; // VPN[21:12]=1: PPN=0x11000, V|W|R  
-    sim_mem[512 + 2] = 32'h12000007; // VPN[21:12]=2: PPN=0x12000, V|W|R
+    sim_mem[512 + 0] = 32'h1000000F; // VPN[21:12]=0: PPN=0x10000, W|R|V
+    sim_mem[512 + 1] = 32'h1100000F; // VPN[21:12]=1: PPN=0x11000, W|R|V  
+    sim_mem[512 + 2] = 32'h12000007; // VPN[21:12]=2: PPN=0x12000, W|R|V
     sim_mem[512 + 3] = 32'h00000000; // VPN[21:12]=3: Invalid entry
 end
 
@@ -229,7 +229,7 @@ initial begin
     test_vaddrs[3] = 32'h00003000; expected_ptes[3] = 32'h00000000;  // L2[3] invalid
     test_vaddrs[4] = 32'h80000000; expected_ptes[4] = 32'h00000000;  // invalid
     test_vaddrs[5] = 32'hC0000000; expected_ptes[5] = 32'h00000000;  // invalid
-    test_vaddrs[6] = 32'h00000800; expected_ptes[6] = 32'h1000000F;  // Same as [0], different offset
+    test_vaddrs[6] = 32'h00000800; expected_ptes[6] = 32'h1000000F;  // Same as L2[0], different offset
     
     for (i = 0; i < 7; i = i + 1) begin
         ptw_translate(test_vaddrs[i], received_pte);

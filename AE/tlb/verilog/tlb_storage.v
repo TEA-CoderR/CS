@@ -33,8 +33,7 @@ module tlb_storage (
     // LRU update interface
     input lru_update_en,
     input [SET_INDEX_BITS-1:0] lru_set_index,
-    input [1:0] lru_way,
-    input [LRU_BITS-1:0] lru_value
+    input [1:0] lru_way
 );
 
 // TLB storage structure (2D arrays)
@@ -103,7 +102,6 @@ always @(posedge clk) begin
         // LRU update (for hit case)
         if (lru_update_en/* && !wr_en*/) begin 
             $display("++++++++++LRU update+++++++++++++%d", lru_update_en);    
-            // tlb_lru_count[lru_set_index][lru_way] <= lru_value;
             tlb_lru_count[lru_set_index][lru_way] <= tlb_lru_count[lru_set_index][lru_way] + 1'b1;
         end
     end

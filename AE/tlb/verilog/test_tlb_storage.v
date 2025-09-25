@@ -35,7 +35,6 @@ reg [LRU_BITS-1:0] wr_lru_count;
 reg lru_update_en;
 reg [SET_INDEX_BITS-1:0] lru_set_index;
 reg [1:0] lru_way;
-reg [LRU_BITS-1:0] lru_value;
 
 // Test variables
 integer test_passed;
@@ -62,8 +61,7 @@ tlb_storage dut (
     .wr_lru_count(wr_lru_count),
     .lru_update_en(lru_update_en),
     .lru_set_index(lru_set_index),
-    .lru_way(lru_way),
-    .lru_value(lru_value)
+    .lru_way(lru_way)
 );
 
 // Clock generation
@@ -153,7 +151,6 @@ begin
     lru_update_en = 1'b1;
     lru_set_index = set;
     lru_way = way;
-    // lru_value = value;
     @(posedge clk);
     lru_update_en = 1'b0;
 end

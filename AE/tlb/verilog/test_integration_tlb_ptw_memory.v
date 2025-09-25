@@ -239,7 +239,7 @@ initial begin
     $display("\n=== Test 2: First Translation (Page Walk) ===");
     // VAddr: 0x00000000 -> VPN1=0, VPN0=0
     // Expected: L1[0]=0x00000801 -> L2[0]=0x1000000F -> PPN=0x10000
-    verify_translation(32'h00000000, 1'b0, 32'h10000000, 1'b0, 1'b0, "First translation - page walk");
+    verify_translation(32'h00000000, 1'b0, 32'h10000000, 1'b1, 1'b0, "First translation - page walk");
     
     // Test 3: TLB Hit (same page)
     $display("\n=== Test 3: TLB Hit ===");
@@ -250,7 +250,7 @@ initial begin
     $display("\n=== Test 4: Different Page (Same L2 Table) ===");
     // VAddr: 0x00001000 -> VPN1=0, VPN0=1
     // Expected: L1[0]=0x00000801 -> L2[1]=0x1100000F -> PPN=0x11000
-    verify_translation(32'h00001000, 1'b0, 32'h11000000, 1'b0, 1'b0, "Different page - same L2");
+    verify_translation(32'h00001000, 1'b0, 32'h11000000, 1'b1, 1'b0, "Different page - same L2");
     
     // Test 5: TLB Hit (same page with different offset)
     verify_translation(32'h00001ABC, 1'b0, 32'h11000ABC, 1'b1, 1'b0, "Hit on second page");
@@ -259,7 +259,7 @@ initial begin
     $display("\n=== Test 6: Third Page Translation ===");
     // VAddr: 0x00002000 -> VPN1=0, VPN0=2
     // Expected: L1[0]=0x00000801 -> L2[2]=0x12000007 -> PPN=0x12000
-    verify_translation(32'h00002000, 1'b0, 32'h12000000, 1'b0, 1'b0, "Third page translation");
+    verify_translation(32'h00002000, 1'b0, 32'h12000000, 1'b1, 1'b0, "Third page translation");
     
     // Test 7: Write access to read+write page (Permission check)
     $display("\n=== Test 7: Write Access Tests ===");
@@ -290,19 +290,19 @@ initial begin
     // Fill TLB Set 1 with 4 different vpn
     // VAddr: 0x00018000 -> VPN1=0, VPN0=0x18=24
     // Expected: L1[0]=0x00000801 -> L2[24]=0x1234500F -> PPN=0x12345
-    verify_translation(32'h00018000, 1'b0, 32'h12345000, 1'b0, 1'b0, "TLB miss - page walk");
+    verify_translation(32'h00018000, 1'b0, 32'h12345000, 1'b1, 1'b0, "TLB miss - page walk");
 
     // VAddr: 0x00028000 -> VPN1=0, VPN0=0x28=40
     // Expected: L1[0]=0x00000801 -> L2[40]=0x2234500F -> PPN=0x22345
-    verify_translation(32'h00028000, 1'b0, 32'h22345000, 1'b0, 1'b0, "TLB miss - page walk");
+    verify_translation(32'h00028000, 1'b0, 32'h22345000, 1'b1, 1'b0, "TLB miss - page walk");
 
     // VAddr: 0x00038000 -> VPN1=0, VPN0=0x38=56
     // Expected: L1[0]=0x00000801 -> L2[56]=0x3234500F -> PPN=0x32345
-    verify_translation(32'h00038000, 1'b0, 32'h32345000, 1'b0, 1'b0, "TLB miss - page walk");
+    verify_translation(32'h00038000, 1'b0, 32'h32345000, 1'b1, 1'b0, "TLB miss - page walk");
 
     // VAddr: 0x00048000 -> VPN1=0, VPN0=0x48=72
     // Expected: L1[0]=0x00000801 -> L2[72]=0x3234500F -> PPN=0x42345
-    verify_translation(32'h00048000, 1'b0, 32'h42345000, 1'b0, 1'b0, "TLB miss - page walk");
+    verify_translation(32'h00048000, 1'b0, 32'h42345000, 1'b1, 1'b0, "TLB miss - page walk");
 
     // Read three addresses and increment their LRU values
     verify_translation(32'h00018000, 1'b0, 32'h12345000, 1'b1, 1'b0, "TLB hit - update lru_count");
@@ -312,12 +312,12 @@ initial begin
     // Read a new address, The VPN 0x00038 should be replaced
     // VAddr: 0x00058000 -> VPN1=0, VPN0=0x58=88
     // Expected: L1[0]=0x00000801 -> L2[88]=0x5234500F -> PPN=0x52345
-    verify_translation(32'h00058000, 1'b0, 32'h52345000, 1'b0, 1'b0, "TLB miss - page walk");
+    verify_translation(32'h00058000, 1'b0, 32'h52345000, 1'b1, 1'b0, "TLB miss - page walk");
 
     // Verify that the vpn has been correctly replaced (VPN 0x00031)
     verify_translation(32'h00018000, 1'b0, 32'h12345000, 1'b1, 1'b0, "TLB hit - update lru_count");
     verify_translation(32'h00028000, 1'b0, 32'h22345000, 1'b1, 1'b0, "TLB hit - update lru_count");
-    verify_translation(32'h00038000, 1'b0, 32'h32345000, 1'b0, 1'b0, "TLB miss - page walk");
+    verify_translation(32'h00038000, 1'b0, 32'h32345000, 1'b1, 1'b0, "TLB miss - page walk");
     verify_translation(32'h00048000, 1'b0, 32'h42345000, 1'b1, 1'b0, "TLB hit - update lru_count");
     
     // Test 10: Comprehensive test
