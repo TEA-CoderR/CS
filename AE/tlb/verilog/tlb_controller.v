@@ -110,10 +110,10 @@ always @(posedge clk) begin
         
         LOOKUP: begin
             if (hit && !perm_fault) begin
-                resp_valid_o  <= 1'b1;
+                resp_valid_o    <= 1'b1;
                 // lru_update_en <= 1'b0;
             end else if (hit && perm_fault) begin
-                resp_valid_o  <= 1'b1;
+                resp_valid_o    <= 1'b1;
             end else begin
                 ptw_req_valid_o <= 1'b1;
             end

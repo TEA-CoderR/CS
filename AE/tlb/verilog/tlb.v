@@ -171,7 +171,7 @@ always @(posedge clk) begin
                     hit_o   <= 1'b1;
                     fault_o <= 1'b1;
                 end else begin
-                    $display("miss");  
+                    $display("ptw");  
                     ptw_vaddr_o <= vaddr_reg;
                 end
             end
@@ -189,13 +189,13 @@ always @(posedge clk) begin
                 if (pte_reg[0] == 1'b0) begin
                     // V == 0 => miss => hit = 0 && fault = 1
                     paddr_o <= 32'd0;
-                    hit_o <= 1'b0;
+                    hit_o   <= 1'b0;
                     fault_o <= 1'b1;
                 end else if ((access_type_reg == 1'b0 && !pte_reg[1]) ||
                     (access_type_reg == 1'b1 && !pte_reg[2])) begin 
                     // V == 1 => hit but perm fault => hit = 1 && fault = 1
                     paddr_o <= 32'd0;
-                    hit_o <= 1'b1;
+                    hit_o   <= 1'b1;
                     fault_o <= 1'b1;
                 end else begin 
                     $display("update");
@@ -211,7 +211,7 @@ always @(posedge clk) begin
                     
                     // Output physical address
                     paddr_o <= {pte_reg[31:12], page_offset};
-                    hit_o <= 1'b1;
+                    hit_o   <= 1'b1;
                     fault_o <= 1'b0;
                 end
             end
