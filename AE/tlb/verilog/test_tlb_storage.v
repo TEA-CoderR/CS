@@ -22,6 +22,7 @@ wire [LRU_BITS-1:0]  rd_lru_count [0:NUM_WAYS-1];
 // wire [NUM_WAYS-1:0][LRU_BITS-1:0]   rd_lru_count;
 
 // Write interface
+reg update_en;
 reg wr_en;
 reg [SET_INDEX_BITS-1:0] wr_set_index;
 reg [1:0] wr_way;
@@ -52,6 +53,7 @@ tlb_storage dut (
     .rd_perms(rd_perms),
     .rd_lru_count(rd_lru_count),
     .wr_en(wr_en),
+    .update_en(update_en),
     .wr_set_index(wr_set_index),
     .wr_way(wr_way),
     .wr_valid(wr_valid),
@@ -72,6 +74,7 @@ task reset_dut;
 begin
     rst = 1'b1;
     wr_en = 1'b0;
+    update_en = 1'b0;
     lru_update_en = 1'b0;
     @(posedge clk);
     @(posedge clk);
@@ -90,6 +93,7 @@ task write_entry(
 begin
     @(posedge clk);
     wr_en = 1'b1;
+    update_en = 1'b1;
     wr_set_index = set;
     wr_way = way;
     wr_valid = 1'b1;
@@ -99,6 +103,7 @@ begin
     wr_lru_count = 4'd0;
     // @(posedge clk);
     @(posedge clk);
+    update_en = 1'b1;
     wr_en = 1'b0;
 end
 endtask
@@ -148,6 +153,7 @@ task update_lru(
 );
 begin
     @(posedge clk);
+    wr_en = 1'b1;
     lru_update_en = 1'b1;
     lru_set_index = set;
     lru_way = way;

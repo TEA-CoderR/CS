@@ -23,6 +23,7 @@ module tlb_controller (
     input perm_fault,
     
     // Control signals
+    output reg wr_en,
     output reg update_en,
     output reg lru_update_en,
     output reg [2:0] state,
@@ -95,14 +96,14 @@ always @(posedge clk) begin
         resp_valid_o      <= 1'b0;
         ptw_req_valid_o   <= 1'b0;
         ptw_resp_ready_o  <= 1'b0;
-        // update_en         <= 1'b0;
-        // lru_update_en     <= 1'b0;
+        wr_en             <= 1'b0;
+        update_en         <= 1'b0;
+        lru_update_en     <= 1'b0;
     end else begin
         case (state)
         ACCEPT_REQ: begin
             if (req_valid_i && req_ready_o) begin
                 req_ready_o <= 1'b0;
-                // lru_update_en <= 1'b1;
             end else begin
                 req_ready_o <= 1'b1;
             end
@@ -110,8 +111,9 @@ always @(posedge clk) begin
         
         LOOKUP: begin
             if (hit && !perm_fault) begin
+                wr_en           <= 1'b1;
+                lru_update_en   <= 1'b1;
                 resp_valid_o    <= 1'b1;
-                // lru_update_en <= 1'b0;
             end else if (hit && perm_fault) begin
                 resp_valid_o    <= 1'b1;
             end else begin
@@ -135,14 +137,19 @@ always @(posedge clk) begin
         end
         
         UPDATE: begin
-            // update_en    <= 1'b1;
+            wr_en        <= 1'b1;
+            update_en    <= 1'b1;
             resp_valid_o <= 1'b1;
         end
         
         RESPOND: begin
-            //lru_update_en <= 1'b0;
-            //resp_valid_o <= 1'b1;
+            // update_en     <= 1'b0;
+            // lru_update_en <= 1'b0;
+            // resp_valid_o  <= 1'b1;
             if (resp_ready_i && resp_valid_o) begin
+                wr_en         <= 1'b0;
+                update_en     <= 1'b0;
+                lru_update_en <= 1'b0;
                 resp_valid_o  <= 1'b0;
                 req_ready_o   <= 1'b1;
             end
@@ -153,6 +160,9 @@ always @(posedge clk) begin
             resp_valid_o      <= 1'b0;
             ptw_req_valid_o   <= 1'b0;
             ptw_resp_ready_o  <= 1'b0;
+            wr_en             <= 1'b0;
+            update_en         <= 1'b0;
+            lru_update_en     <= 1'b0;
         end
     endcase
     end    

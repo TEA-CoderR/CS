@@ -22,6 +22,7 @@ module tlb_storage (
     
     // Write interface
     input wr_en,
+    input update_en,
     input [SET_INDEX_BITS-1:0] wr_set_index,
     input [1:0] wr_way,
     input wr_valid,
@@ -90,8 +91,8 @@ always @(posedge clk) begin
         end
     end else begin
         // Write operation (for miss case)
-        if (wr_en) begin
-            // $display("++++++++++Write in+++++++++++++%d,%d", wr_set_index, wr_way);
+        if (update_en && wr_en) begin
+            $display("++++++++++Write in+++++++++++++%d,%d", wr_set_index, wr_way);
             tlb_valid[wr_set_index][wr_way]     <= wr_valid;
             tlb_vpn[wr_set_index][wr_way]       <= wr_vpn;
             tlb_ppn[wr_set_index][wr_way]       <= wr_ppn;
@@ -100,8 +101,8 @@ always @(posedge clk) begin
         end 
 
         // LRU update (for hit case)
-        if (lru_update_en/* && !wr_en*/) begin 
-            // $display("++++++++++LRU update+++++++++++++%d", lru_update_en);    
+        if (lru_update_en && wr_en) begin 
+            $display("++++++++++LRU update+++++++++++++%d", lru_update_en);    
             tlb_lru_count[lru_set_index][lru_way] <= tlb_lru_count[lru_set_index][lru_way] + 1'b1;
         end
     end

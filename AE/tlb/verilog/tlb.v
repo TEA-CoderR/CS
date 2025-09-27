@@ -37,7 +37,7 @@ reg [31:0] pte_reg;
 
 // Control signals
 wire [2:0] state, next_state;
-wire update_en, lru_update_en;
+wire wr_en, update_en, lru_update_en;
 
 // Storage interface signals
 wire [SET_INDEX_BITS-1:0] set_index;
@@ -61,7 +61,7 @@ wire [1:0] replace_way;
 wire [LRU_BITS-1:0] max_lru_value;
 
 // Write signals
-reg wr_en;
+// reg wr_en;
 reg [1:0] wr_way;
 reg wr_valid;
 reg [19:0] wr_vpn;
@@ -83,6 +83,7 @@ tlb_controller controller (
     .ptw_resp_ready_o(ptw_resp_ready_o),
     .hit(hit),
     .perm_fault(perm_fault),
+    .wr_en(wr_en),
     .update_en(update_en),
     .lru_update_en(lru_update_en),
     .state(state),
@@ -100,6 +101,7 @@ tlb_storage storage (
     .rd_perms(rd_perms),
     .rd_lru_count(rd_lru_count),
     .wr_en(wr_en),
+    .update_en(update_en),
     .wr_set_index(set_index),
     .wr_way(wr_way),
     .wr_valid(wr_valid),
@@ -107,7 +109,8 @@ tlb_storage storage (
     .wr_ppn(wr_ppn),
     .wr_perms(wr_perms),
     .wr_lru_count(wr_lru_count),
-    .lru_update_en(state == LOOKUP && hit && !perm_fault),
+    // .lru_update_en(state == LOOKUP && hit && !perm_fault),
+    .lru_update_en(lru_update_en),
     .lru_set_index(set_index),
     .lru_way(hit_way)
 );
@@ -147,10 +150,11 @@ always @(posedge clk) begin
         paddr_o         <= 32'd0;
         hit_o           <= 1'b0;
         fault_o         <= 1'b0;
-        wr_en           <= 1'b0;
+        // wr_en           <= 1'b0;
     end else begin
-        wr_en <= 1'b0;  // Default
+        // wr_en <= 1'b0;  // Default
         // $display("----------test_tlb------------%d", state == LOOKUP && hit && !perm_fault); 
+        // $display("----------test_tlb------------%d", lru_update_en); 
         case (state)
             ACCEPT_REQ: begin
                 if (req_valid_i && req_ready_o) begin
@@ -163,6 +167,10 @@ always @(posedge clk) begin
                 $display("  vaddr=0x%08h", vaddr_reg);
                 if (hit && !perm_fault) begin
                     $display("hit");  
+                    // LRU update
+                    // wr_en   <= 1'b1;
+
+                    // Output physical address
                     paddr_o <= {hit_ppn, page_offset};
                     hit_o   <= 1'b1;
                     fault_o <= 1'b0;
@@ -193,15 +201,15 @@ always @(posedge clk) begin
                     fault_o <= 1'b1;
                 end else if ((access_type_reg == 1'b0 && !pte_reg[1]) ||
                     (access_type_reg == 1'b1 && !pte_reg[2])) begin 
-                    // V == 1 => hit but perm fault => hit = 1 && fault = 1
+                    // V == 1 => hit but permission fault => hit = 1 && fault = 1
                     paddr_o <= 32'd0;
                     hit_o   <= 1'b1;
                     fault_o <= 1'b1;
                 end else begin 
                     $display("update");
-                    // Hit => hit = 1 && fault = 0    
+                    // V == 1 => hit with permission => hit = 1 && fault = 0    
                     // Update TLB entry
-                    wr_en        <= 1'b1;
+                    // wr_en        <= 1'b1;
                     wr_way       <= replace_way;
                     wr_valid     <= 1'b1;
                     wr_vpn       <= vpn;
@@ -218,9 +226,10 @@ always @(posedge clk) begin
             
             RESPOND: begin
                 if (resp_ready_i && resp_valid_o) begin
+                    paddr_o <= 32'd0;
                     hit_o   <= 1'b0;
                     fault_o <= 1'b0;
-                    wr_en   <= 1'b0;
+                    // wr_en   <= 1'b0;
                 end
             end
         endcase
