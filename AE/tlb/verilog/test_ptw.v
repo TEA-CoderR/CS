@@ -70,7 +70,7 @@ initial begin
     // L2 PT at 0x800 (word index = 0x800>>2 = 512)  
     sim_mem[512 + 0] = 32'h1000000F; // VPN[21:12]=0: PPN=0x10000, W|R|V
     sim_mem[512 + 1] = 32'h1100000F; // VPN[21:12]=1: PPN=0x11000, W|R|V  
-    sim_mem[512 + 2] = 32'h12000007; // VPN[21:12]=2: PPN=0x12000, W|R|V
+    sim_mem[512 + 2] = 32'h12000003; // VPN[21:12]=2: PPN=0x12000, R|V (R-only)
     sim_mem[512 + 3] = 32'h00000000; // VPN[21:12]=3: Invalid entry
 end
 
@@ -207,7 +207,7 @@ initial begin
     verify_translation(32'h00001000, 32'h1100000F, "PTW - VPN1=0,VPN0=1");
     
     // VAddr: 0x00002000 -> VPN1=0, VPN0=2 -> Should access L1[0] then L2[2]
-    verify_translation(32'h00002000, 32'h12000007, "PTW - VPN1=0,VPN0=2");
+    verify_translation(32'h00002000, 32'h12000003, "PTW - VPN1=0,VPN0=2");
     
     // Test 3: Invalid page table entries
     $display("\n=== Test 3: Invalid Page Table Entries ===");
@@ -225,7 +225,7 @@ initial begin
     
     test_vaddrs[0] = 32'h00000000; expected_ptes[0] = 32'h1000000F;  // L2[0]
     test_vaddrs[1] = 32'h00001000; expected_ptes[1] = 32'h1100000F;  // L2[1]  
-    test_vaddrs[2] = 32'h00002000; expected_ptes[2] = 32'h12000007;  // L2[2]
+    test_vaddrs[2] = 32'h00002000; expected_ptes[2] = 32'h12000003;  // L2[2]
     test_vaddrs[3] = 32'h00003000; expected_ptes[3] = 32'h00000000;  // L2[3] invalid
     test_vaddrs[4] = 32'h80000000; expected_ptes[4] = 32'h00000000;  // invalid
     test_vaddrs[5] = 32'hC0000000; expected_ptes[5] = 32'h00000000;  // invalid

@@ -7,7 +7,7 @@
 parameter NUM_ENTRIES    = 64;      // Total number of entries
 parameter NUM_WAYS       = 4;       // Number of ways (set-associative)
 parameter NUM_SETS       = 16;      // Number of sets (64/4 = 16)
-parameter LRU_BITS       = 4;       // LRU counter bit width
+parameter LRU_BITS       = 32;      // LRU counter bit width
 parameter SET_INDEX_BITS = 4;       // Set index bit width (log2(16) = 4)
 
 // State definitions

@@ -220,7 +220,7 @@ initial begin
     $display("  L2 PT at 0x0800 (word index 512):");
     $display("    [0] = 0x1000000F -> PPN=0x10000, R+W");
     $display("    [1] = 0x1100000F -> PPN=0x11000, R+W");
-    $display("    [2] = 0x12000007 -> PPN=0x12000, R+W");
+    $display("    [2] = 0x12000003 -> PPN=0x12000, R-only");
     $display("    [3] = 0x00000000 -> Invalid");
     $display("========================================");
     
@@ -259,14 +259,14 @@ initial begin
     // Test 6: Third page in same L2 table (not found in TLB - ptw - hit)
     $display("\n=== Test 6: Third Page Translation ===");
     // VAddr: 0x00002000 -> VPN1=0, VPN0=2
-    // Expected: L1[0]=0x00000801 -> L2[2]=0x12000007 -> PPN=0x12000
+    // Expected: L1[0]=0x00000801 -> L2[2]=0x12000003 -> PPN=0x12000
     verify_translation(32'h00002000, 1'b0, 32'h12000000, 1'b1, 1'b0, "VPN=0x00002 - not found in TLB - ptw - hit");
     
-    // Test 7: Write access to read+write page (Permission check)
+    // Test 7: Write access to not-writable page and writable page (Permission check)
     $display("\n=== Test 7: Write Access Tests ===");
     // VAddr: 0x00002456 -> VPN1=0, VPN0=2
-    // Expected: L1[0]=0x00000801 -> L2[2]=0x12000007 -> PPN=0x12000
-    verify_translation(32'h00002456, 1'b1, 32'h12000456, 1'b1, 1'b0, "Write to R+W page (hit)");    
+    // Expected: L1[0]=0x00000801 -> L2[2]=0x12000003 -> PPN=0x12000
+    verify_translation(32'h00002456, 1'b1, 32'h00000000, 1'b1, 1'b1, "Write to R-only page (fault)");    
     
     // VAddr: 0x00000789 -> VPN1=0, VPN0=0
     // Expected: L1[0]=0x00000801 -> L2[0]=0x1000000F -> PPN=0x10000

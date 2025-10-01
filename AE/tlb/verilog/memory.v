@@ -140,7 +140,7 @@ initial begin
     // L2 PT at 0x800 (word index = 0x800>>2 = 512)  
     mem[512 + 0] = 32'h1000000F; // VPN[21:12]=0: PPN=0x10000, W|R|V
     mem[512 + 1] = 32'h1100000F; // VPN[21:12]=1: PPN=0x11000, W|R|V  
-    mem[512 + 2] = 32'h12000007; // VPN[21:12]=2: PPN=0x12000, W|R|V
+    mem[512 + 2] = 32'h12000003; // VPN[21:12]=2: PPN=0x12000, R|V (R-only)
     mem[512 + 3] = 32'h00000000; // VPN[21:12]=3: Invalid entry
 
     // To test the TLB replacement strategy (Insert in set 8)

@@ -141,7 +141,7 @@ initial begin
     // Level 2 page table at 0x800 (word index 512)
     verify_read(32'h00000800, 32'h1000000F, "L2 PT entry 0");
     verify_read(32'h00000804, 32'h1100000F, "L2 PT entry 1");
-    verify_read(32'h00000808, 32'h12000007, "L2 PT entry 2");
+    verify_read(32'h00000808, 32'h12000003, "L2 PT entry 2");
     verify_read(32'h0000080C, 32'h00000000, "L2 PT entry 3 (invalid)");
             
     // Test 4: Out of range access
@@ -158,7 +158,7 @@ initial begin
     test_addresses[3] = 32'h00000408; expected_values[3] = 32'h00000000;
     test_addresses[4] = 32'h00000800; expected_values[4] = 32'h1000000F;
     test_addresses[5] = 32'h00000804; expected_values[5] = 32'h1100000F;
-    test_addresses[6] = 32'h00000808; expected_values[6] = 32'h12000007;
+    test_addresses[6] = 32'h00000808; expected_values[6] = 32'h12000003;
     test_addresses[7] = 32'h0000080C; expected_values[7] = 32'h00000000;
     test_addresses[8] = 32'h00000FFC; expected_values[8] = 32'h00000000;
     test_addresses[9] = 32'h00001000; expected_values[9] = 32'h00000000;

@@ -191,6 +191,7 @@ always @(posedge clk) begin
             end
             
             UPDATE: begin
+                // $display("----------test_tlb------------%d, %d", pte_reg[1], pte_reg[2]); 
                 // pte_reg[0]: valid bit (1 = valid, 0 = invalid)
                 // pte_reg[1]: read permission (1 = readable, 0 = not readable)
                 // pte_reg[2]: write permission (1 = writable, 0 = not writable)
@@ -214,7 +215,7 @@ always @(posedge clk) begin
                     wr_valid     <= 1'b1;
                     wr_vpn       <= vpn;
                     wr_ppn       <= pte_reg[31:12];
-                    wr_perms     <= pte_reg[1:0];
+                    wr_perms     <= pte_reg[2:1];
                     wr_lru_count <= max_lru_value == 0 ? 1 : max_lru_value;
                     
                     // Output physical address
