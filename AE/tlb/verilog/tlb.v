@@ -176,7 +176,7 @@ always @(posedge clk) begin
                     fault_o <= 1'b0;
                 end else if (hit && perm_fault) begin
                     paddr_o <= 32'd0;
-                    hit_o   <= 1'b1;
+                    hit_o   <= 1'b0;
                     fault_o <= 1'b1;
                 end else begin
                     $display("ptw");  
@@ -191,7 +191,6 @@ always @(posedge clk) begin
             end
             
             UPDATE: begin
-                // $display("----------test_tlb------------%d, %d", pte_reg[1], pte_reg[2]); 
                 // pte_reg[0]: valid bit (1 = valid, 0 = invalid)
                 // pte_reg[1]: read permission (1 = readable, 0 = not readable)
                 // pte_reg[2]: write permission (1 = writable, 0 = not writable)
@@ -202,9 +201,9 @@ always @(posedge clk) begin
                     fault_o <= 1'b1;
                 end else if ((access_type_reg == 1'b0 && !pte_reg[1]) ||
                     (access_type_reg == 1'b1 && !pte_reg[2])) begin 
-                    // V == 1 => hit but permission fault => hit = 1 && fault = 1
+                    // V == 1 => hit but permission fault => hit = 0 && fault = 1
                     paddr_o <= 32'd0;
-                    hit_o   <= 1'b1;
+                    hit_o   <= 1'b0;
                     fault_o <= 1'b1;
                 end else begin 
                     $display("update");
@@ -222,6 +221,7 @@ always @(posedge clk) begin
                     paddr_o <= {pte_reg[31:12], page_offset};
                     hit_o   <= 1'b1;
                     fault_o <= 1'b0;
+                    // $display("----------test_tlb------------%d, %d", state, hit_o); 
                 end
             end
             

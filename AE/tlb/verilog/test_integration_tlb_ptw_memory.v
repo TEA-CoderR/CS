@@ -266,7 +266,7 @@ initial begin
     $display("\n=== Test 7: Write Access Tests ===");
     // VAddr: 0x00002456 -> VPN1=0, VPN0=2
     // Expected: L1[0]=0x00000801 -> L2[2]=0x12000003 -> PPN=0x12000
-    verify_translation(32'h00002456, 1'b1, 32'h00000000, 1'b1, 1'b1, "Write to R-only page (fault)");    
+    verify_translation(32'h00002456, 1'b1, 32'h00000000, 1'b0, 1'b1, "Write to R-only page (fault)");    
     
     // VAddr: 0x00000789 -> VPN1=0, VPN0=0
     // Expected: L1[0]=0x00000801 -> L2[0]=0x1000000F -> PPN=0x10000

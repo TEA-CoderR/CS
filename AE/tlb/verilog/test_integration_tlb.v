@@ -276,7 +276,7 @@ initial begin
                       "Write to R+W page - Success");
     verify_translation(32'h00001000, 1'b1, 32'h11000000, 1'b1, 1'b0, 
                       "Write to R+W page - Success");
-    verify_translation(32'h00002000, 1'b1, 32'h00000000, 1'b1, 1'b1, 
+    verify_translation(32'h00002000, 1'b1, 32'h00000000, 1'b0, 1'b1, 
                       "Write to R-only page - Fault");
     
     // Test 5: Invalid page
