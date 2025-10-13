@@ -55,7 +55,7 @@ always @(*) begin
     
     case (state)
         IDLE: begin
-            if (mem_req_valid_i/* && mem_req_ready_o*/) begin
+            if (mem_req_valid_i && mem_req_ready_o) begin
                 next_state = READ_ACCESS;
             end
         end
@@ -65,7 +65,7 @@ always @(*) begin
         end
         
         RESPOND: begin
-            if (mem_resp_ready_i/* && mem_resp_valid_o*/) begin
+            if (mem_resp_ready_i && mem_resp_valid_o) begin
                 next_state = IDLE;
             end
         end
@@ -79,18 +79,17 @@ end
 // Output and control logic
 always @(posedge clk) begin
     if (rst) begin
-        mem_req_ready_o <= 1'b1;
+        mem_req_ready_o  <= 1'b1;
         mem_resp_valid_o <= 1'b0;
-        mem_data_o <= 32'h00000000;
-        mem_addr_reg <= 32'h00000000;
+        mem_data_o       <= 32'h00000000;
+        mem_addr_reg     <= 32'h00000000;
     end else begin
 
         case (state)
             IDLE: begin
-                //mem_req_ready_o <= 1'b1;
-                if (mem_req_valid_i/* && mem_req_ready_o*/) begin
+                if (mem_req_valid_i && mem_req_ready_o) begin
                     // Accept request
-                    mem_addr_reg <= mem_addr_i;
+                    mem_addr_reg    <= mem_addr_i;
                     mem_req_ready_o <= 1'b0;                  
                 end else begin
                     mem_req_ready_o <= 1'b1;
@@ -109,15 +108,15 @@ always @(posedge clk) begin
             
             RESPOND: begin
                 //mem_resp_valid_o <= 1'b1;
-                if (mem_resp_ready_i/* && mem_resp_valid_o*/) begin
+                if (mem_resp_ready_i && mem_resp_valid_o) begin
                     // Response accepted
                     mem_resp_valid_o <= 1'b0;
-                    mem_req_ready_o <= 1'b1;
+                    mem_req_ready_o  <= 1'b1;
                 end
             end
             
             default: begin
-                mem_req_ready_o <= 1'b1;
+                mem_req_ready_o  <= 1'b1;
                 mem_resp_valid_o <= 1'b0;
             end
         endcase

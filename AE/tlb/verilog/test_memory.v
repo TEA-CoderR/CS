@@ -68,11 +68,8 @@ begin
     // 3. Awaiting Response
     mem_resp_ready_i = 1'b1;
     do @(posedge clk); while (mem_resp_valid_o !== 1'b1);
-    // @(posedge clk);
     data_result      = mem_data_o;
     
-    // mem_resp_ready_i = 1'b1;
-    // @(posedge clk);
     @(posedge clk);
     mem_resp_ready_i = 1'b0;
     @(posedge clk);
@@ -110,7 +107,7 @@ initial begin
     test_failed = 0;
     
     $display("========================================");
-    $display("Memory Unit Test Starting (Fixed Version)");
+    $display("Memory Unit Test Starting");
     $display("========================================");
     
     // Test 1: Reset functionality
@@ -196,16 +193,6 @@ initial begin
     $dumpfile("test_memory.vcd");
     $dumpvars(0, test_memory);
 end
-
-// DEBUG: Memory monitoring for debugging
-// always @(posedge clk) begin
-//     $display("Time: %0t, State: %s, req_valid=%b, req_ready=%b, resp_valid=%b, resp_ready=%b", 
-//              $time,
-//              (dut.state == 2'b00) ? "IDLE" :
-//              (dut.state == 2'b01) ? "READ_ACCESS" :
-//              (dut.state == 2'b10) ? "RESPOND" : "UNKNOWN",
-//              mem_req_valid_i, mem_req_ready_o, mem_resp_valid_o, mem_resp_ready_i);
-// end
 
 endmodule
 

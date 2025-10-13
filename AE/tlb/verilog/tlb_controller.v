@@ -41,7 +41,6 @@ end
 
 // Next state logic (combinational)
 always @(*) begin
-    // Default: stay in current state
     next_state = state;
     
     case (state)

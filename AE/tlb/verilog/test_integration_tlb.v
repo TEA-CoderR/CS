@@ -204,7 +204,7 @@ task verify_translation(
     input [31:0] expected_paddr,
     input expected_hit,
     input expected_fault,
-    input [511:0] test_name
+    input [255:0] test_name
 );
 begin
     $display("\n--- Test: %s ---", test_name);

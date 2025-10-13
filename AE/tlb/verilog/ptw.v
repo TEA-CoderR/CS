@@ -66,7 +66,6 @@ end
 
 // Next state logic (combinational)
 always @(*) begin
-    // Default values
     next_state = state;
     
     case (state)
@@ -137,14 +136,9 @@ always @(posedge clk) begin
                 if (ptw_req_valid_i && ptw_req_ready_o) begin
                     vaddr_reg <= ptw_vaddr_i;
                     // PTW request accepted
-                    ptw_req_ready_o <= 1'b0;
-                    
-                    // // Prepare Level1 memory request
-                    // mem_addr_o <= level1_pte_addr;
-                    // mem_req_valid_o <= 1'b1;
+                    ptw_req_ready_o <= 1'b0;                    
                 end else begin
                     ptw_req_ready_o <= 1'b1;
-                    //mem_req_valid_o <= 1'b0;
                 end
             end
             
@@ -172,11 +166,7 @@ always @(posedge clk) begin
                     if (mem_data_i[0] == 1'b0) begin // Invalid PTE
                         ptw_pte_o <= 32'h00000000; // Return invalid PTE
                         ptw_resp_valid_o <= 1'b1;
-                    end /*else begin // Pointer to next level
-                        // Prepare Level2 memory request
-                        // mem_addr_o <= level2_pte_addr;
-                        // mem_req_valid_o <= 1'b1;
-                    end*/
+                    end
                 end
             end
             
@@ -221,7 +211,6 @@ always @(posedge clk) begin
             end
             
             default: begin
-                //$display("default");
                 ptw_req_ready_o <= 1'b1;
                 ptw_resp_valid_o <= 1'b0;
                 mem_req_valid_o <= 1'b0;

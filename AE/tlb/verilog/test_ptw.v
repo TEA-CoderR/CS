@@ -138,11 +138,8 @@ begin
     // 3. Awaiting Response
     ptw_resp_ready_i = 1'b1;
     do @(posedge clk); while (ptw_resp_valid_o !== 1'b1);
-    // @(posedge clk);
     pte_result = ptw_pte_o;
     
-    // ptw_resp_ready_i = 1'b1;
-    // @(posedge clk);
     @(posedge clk);
     ptw_resp_ready_i = 1'b0;
     @(posedge clk);
@@ -289,12 +286,6 @@ end
 //     end
 //     if (ptw_resp_valid_o && ptw_resp_ready_i) begin
 //         $display("  [DEBUG] PTW response: pte=0x%08h", ptw_pte_o);
-//     end
-// end
-
-// always @(posedge clk) begin
-//     if (dut.state != dut.next_state) begin
-//         $display("[%0t] PTW State: %d -> %d", $time, dut.state, dut.next_state);
 //     end
 // end
 

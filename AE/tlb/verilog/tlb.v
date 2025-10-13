@@ -150,11 +150,7 @@ always @(posedge clk) begin
         paddr_o         <= 32'd0;
         hit_o           <= 1'b0;
         fault_o         <= 1'b0;
-        // wr_en           <= 1'b0;
     end else begin
-        // wr_en <= 1'b0;  // Default
-        // $display("----------test_tlb------------%d", state == LOOKUP && hit && !perm_fault); 
-        // $display("----------test_tlb------------%d", lru_update_en); 
         case (state)
             ACCEPT_REQ: begin
                 if (req_valid_i && req_ready_o) begin
@@ -164,12 +160,9 @@ always @(posedge clk) begin
             end
             
             LOOKUP: begin
-                $display("  vaddr=0x%08h", vaddr_reg);
+                // $display("  vaddr=0x%08h", vaddr_reg);
                 if (hit && !perm_fault) begin
-                    $display("hit");  
-                    // LRU update
-                    // wr_en   <= 1'b1;
-
+                    $display("  [CACHE] HIT        |  vaddr: 0x%08h", vaddr_reg); 
                     // Output physical address
                     paddr_o <= {hit_ppn, page_offset};
                     hit_o   <= 1'b1;
@@ -179,7 +172,7 @@ always @(posedge clk) begin
                     hit_o   <= 1'b0;
                     fault_o <= 1'b1;
                 end else begin
-                    $display("ptw");  
+                    $display("  [CACHE] MISS->PTW  |  vaddr: 0x%08h", vaddr_reg); 
                     ptw_vaddr_o <= vaddr_reg;
                 end
             end
@@ -206,10 +199,9 @@ always @(posedge clk) begin
                     hit_o   <= 1'b0;
                     fault_o <= 1'b1;
                 end else begin 
-                    $display("update");
+                    $display("  [CACHE] UPDATE     |  vaddr: 0x%08h", vaddr_reg);
                     // V == 1 => hit with permission => hit = 1 && fault = 0    
                     // Update TLB entry
-                    // wr_en        <= 1'b1;
                     wr_way       <= replace_way;
                     wr_valid     <= 1'b1;
                     wr_vpn       <= vpn;
@@ -221,7 +213,6 @@ always @(posedge clk) begin
                     paddr_o <= {pte_reg[31:12], page_offset};
                     hit_o   <= 1'b1;
                     fault_o <= 1'b0;
-                    // $display("----------test_tlb------------%d, %d", state, hit_o); 
                 end
             end
             
@@ -230,7 +221,6 @@ always @(posedge clk) begin
                     paddr_o <= 32'd0;
                     hit_o   <= 1'b0;
                     fault_o <= 1'b0;
-                    // wr_en   <= 1'b0;
                 end
             end
         endcase

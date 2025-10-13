@@ -259,20 +259,7 @@ initial begin
     $dumpvars(0, test_integration_memory_ptw);
 end
 
-// System-level monitoring
-// always @(posedge clk) begin
-//     // Monitor PTW status changes
-//     if (ptw_inst.state != ptw_inst.next_state) begin
-//         $display("[%0t] PTW State: %d -> %d", $time, ptw_inst.state, ptw_inst.next_state);
-//     end
-    
-//     // Monitor Memory status changes
-//     if (mem_inst.state != mem_inst.next_state) begin
-//         $display("[%0t] Memory State: %d -> %d", $time, mem_inst.state, mem_inst.next_state);
-//     end
-// end
-
-// // Transaction monitoring
+// DEBUG: Transaction monitoring for debugging
 // always @(posedge clk) begin
 //     if (ptw_req_valid_i && ptw_req_ready_o) begin
 //         $display("[%0t] [TRANSACTION] PTW request: vaddr=0x%08h", $time, ptw_vaddr_i);
@@ -285,33 +272,6 @@ end
 //     end
 //     if (ptw_resp_valid_o && ptw_resp_ready_i) begin
 //         $display("[%0t] [TRANSACTION] PTW response: pte=0x%08h", $time, ptw_pte_o);
-//     end
-// end
-
-// // Performance monitoring
-// integer total_cycles;
-// integer active_translations;
-// always @(posedge clk) begin
-//     if (rst) begin
-//         total_cycles = 0;
-//         active_translations = 0;
-//     end else begin
-//         total_cycles = total_cycles + 1;
-//         if (ptw_req_valid_i && ptw_req_ready_o) begin
-//             active_translations = active_translations + 1;
-//         end
-//     end
-// end
-
-// // Final performance report
-// always @(posedge clk) begin
-//     if (test_passed + test_failed > 0 && total_cycles > 1000) begin
-//         $display("[PERF] Total cycles: %d, Active translations: %d", 
-//                  total_cycles, active_translations);
-//         if (active_translations > 0) begin
-//             $display("[PERF] Average cycles per translation: %0.1f", 
-//                      total_cycles * 1.0 / active_translations);
-//         end
 //     end
 // end
 
